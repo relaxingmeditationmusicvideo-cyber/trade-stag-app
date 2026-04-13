@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: trade-stag
+    runtime: python
+    rootDir: backend
+    buildCommand: |
+      pip install -r requirements.txt &&
+      cd ../frontend &&
+      npm install &&
+      REACT_APP_API_URL="" npm run build &&
+      cp -r build ../backend/static
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.6"
+      - key: NODE_VERSION
+        value: "20.11.0"
+      - key: JWT_SECRET
+        generateValue: true
+    plan: free
