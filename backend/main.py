@@ -1113,7 +1113,11 @@ if _static_dir.exists():
 
     @app.get("/{full_path:path}")
     async def serve_react(full_path: str):
-        """Catch-all: serve React index.html for client-side routing."""
+        """Catch-all: serve React index.html for client-side routing.
+        IMPORTANT: skip /api/ paths so FastAPI routes win."""
+        # Never intercept API or docs routes
+        if full_path.startswith("api/") or full_path.startswith("docs") or full_path.startswith("openapi") or full_path.startswith("redoc"):
+            raise HTTPException(status_code=404, detail="Not Found")
         file_path = _static_dir / full_path
         if file_path.is_file():
             return FileResponse(str(file_path))
