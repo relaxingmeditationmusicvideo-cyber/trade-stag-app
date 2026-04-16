@@ -1,5 +1,5 @@
-# Runtime-generated cache (contains scan results, rewrites on every scan)
-backend/scan_cache.json
+# scan_cache.json IS committed — it's the primary data source for Render.
+# Run `python run_scan.py` locally, commit, and push to update live data.
 
 # Python
 __pycache__/

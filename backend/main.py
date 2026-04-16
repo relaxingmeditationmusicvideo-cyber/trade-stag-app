@@ -105,9 +105,10 @@ def _load_cache():
         logger.warning(f"⚠️ Failed to load cache: {e}")
         return False
 
-# Universe cap — limits scan scope to fit Render free-tier's 512MB RAM.
-# Full NSE 500 OOMs the process; top 200 finishes reliably in ~6–10 min.
-_SCAN_UNIVERSE_LIMIT = int(os.environ.get("SCAN_UNIVERSE_LIMIT", "200"))
+# Universe cap — limits Render-triggered scans to fit 512MB free-tier RAM.
+# Primary data source is scan_cache.json (pushed from local `run_scan.py`).
+# If a scan IS triggered on Render, cap to 150 to avoid OOM.
+_SCAN_UNIVERSE_LIMIT = int(os.environ.get("SCAN_UNIVERSE_LIMIT", "150"))
 
 # ─── Import the analyzer engine ───
 # The analyzer is placed alongside this file as `analyzer.py`
