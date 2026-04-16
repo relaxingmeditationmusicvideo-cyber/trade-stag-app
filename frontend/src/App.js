@@ -16,7 +16,9 @@ import ProtectedRoute from './components/ProtectedRoute';
 import DisclaimerModal from './components/DisclaimerModal';
 import { AuthProvider, useAuth } from './AuthContext';
 
-const API = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+// Empty string = relative URL → browser uses current domain automatically.
+// In dev: set REACT_APP_API_URL=http://localhost:8000 in .env
+const API = process.env.REACT_APP_API_URL || '';
 
 // ─── Sidebar groups — SEBI-neutral labels ───
 const SIDEBAR_GROUPS = [
