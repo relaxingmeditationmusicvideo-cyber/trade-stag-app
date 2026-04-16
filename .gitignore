@@ -1,0 +1,28 @@
+# Runtime-generated cache (contains scan results, rewrites on every scan)
+backend/scan_cache.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+venv/
+
+# Node
+node_modules/
+frontend/node_modules/
+frontend/build/
+
+# Local databases / logs
+*.db
+*.sqlite3
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

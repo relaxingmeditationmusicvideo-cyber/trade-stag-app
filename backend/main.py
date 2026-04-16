@@ -66,6 +66,49 @@ _store = {
     "error": None,
 }
 
+# ─── Persistence: save/load scan results to disk so they survive restarts ───
+# Render free-tier filesystem is ephemeral, but this still helps when the
+# process restarts within the same instance (common between sleeps/deploys).
+import json as _json
+_CACHE_FILE = os.path.join(os.path.dirname(__file__), "scan_cache.json")
+
+_PERSISTED_KEYS = [
+    "results", "market_pulse", "top_trades", "sectors",
+    "breadth", "fii_dii", "pcr", "max_pain", "last_scan",
+]
+
+def _save_cache():
+    """Save scan results to disk after a successful scan."""
+    try:
+        payload = {k: _store.get(k) for k in _PERSISTED_KEYS}
+        with open(_CACHE_FILE, "w", encoding="utf-8") as f:
+            _json.dump(payload, f, default=str)
+        logger.info(f"💾 Cached scan results to {_CACHE_FILE}")
+    except Exception as e:
+        logger.warning(f"⚠️ Failed to save cache: {e}")
+
+def _load_cache():
+    """Load previously cached scan results. Returns True if loaded."""
+    try:
+        if not os.path.exists(_CACHE_FILE):
+            return False
+        with open(_CACHE_FILE, "r", encoding="utf-8") as f:
+            payload = _json.load(f)
+        if not payload or not payload.get("results"):
+            return False
+        for k in _PERSISTED_KEYS:
+            if k in payload:
+                _store[k] = payload[k]
+        logger.info(f"📂 Loaded cached scan: {len(_store.get('results') or [])} stocks, last_scan={_store.get('last_scan')}")
+        return True
+    except Exception as e:
+        logger.warning(f"⚠️ Failed to load cache: {e}")
+        return False
+
+# Universe cap — limits scan scope to fit Render free-tier's 512MB RAM.
+# Full NSE 500 OOMs the process; top 200 finishes reliably in ~6–10 min.
+_SCAN_UNIVERSE_LIMIT = int(os.environ.get("SCAN_UNIVERSE_LIMIT", "200"))
+
 # ─── Import the analyzer engine ───
 # The analyzer is placed alongside this file as `analyzer.py`
 # (copy your nse500_swing_analyzer_vikrant.py and rename it)
@@ -477,6 +520,13 @@ def _run_scan():
         # Fetch market-wide data
         fetcher = NSEDataFetcher()
         symbols = fetcher.get_nifty500_list()
+
+        # Cap universe to fit Render free-tier memory limit (512MB).
+        # NIFTY 500 CSV is ordered by market cap, so the first N = large/mid-cap leaders.
+        if _SCAN_UNIVERSE_LIMIT and len(symbols) > _SCAN_UNIVERSE_LIMIT:
+            logger.info(f"🔻 Capping universe from {len(symbols)} → {_SCAN_UNIVERSE_LIMIT} (free-tier memory limit)")
+            symbols = symbols[:_SCAN_UNIVERSE_LIMIT]
+
         _store["scan_total"] = len(symbols)
 
         pcr_data = fetcher.get_pcr_data()
@@ -487,7 +537,8 @@ def _run_scan():
         pipeline.price_mgr.fetch_nifty()
         pipeline._pcr_data = pcr_data
 
-        output = pipeline.run(symbols, max_workers=6)
+        # max_workers reduced from 6 → 3 to cut peak memory usage
+        output = pipeline.run(symbols, max_workers=3)
 
         if output:
             results, sorted_sectors, breadth_data, top_trades, fii_dii_data = output
@@ -521,6 +572,8 @@ def _run_scan():
 
             _store["last_scan"] = datetime.now().isoformat()
             logger.info(f"✅ Scan complete: {len(results)} stocks analyzed")
+            # Persist so data survives restarts / sleep cycles
+            _save_cache()
         else:
             _store["error"] = "Scan returned no results"
 
@@ -801,8 +854,12 @@ def _load_demo_data():
     logger.info("📊 Demo data loaded successfully")
 
 
-# Load demo data on startup
-_load_demo_data()
+# Startup: try cached scan first, fall back to demo data
+if _load_cache():
+    logger.info("✅ Loaded previous scan from cache — skipping demo data")
+else:
+    logger.info("ℹ️ No cache found — loading demo data")
+    _load_demo_data()
 
 
 # ─── API ENDPOINTS ───
