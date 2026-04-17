@@ -20,40 +20,40 @@ import { AuthProvider, useAuth } from './AuthContext';
 // In dev: set REACT_APP_API_URL=http://localhost:8000 in .env
 const API = process.env.REACT_APP_API_URL || '';
 
-// ─── Sidebar groups — SEBI-neutral labels ───
+// ─── Sidebar groups — SEBI-neutral, StockMagnets-inspired labels ───
 const SIDEBAR_GROUPS = [
   {
-    label: 'Momentum Screens',
+    label: 'Momentum & Technical',
     items: [
-      { id: 'all',          label: 'All Stocks',             icon: '📊' },
-      { id: 'aplus',        label: 'Top Scoring Stocks',     icon: '⭐', badge: 'HOT' },
-      { id: 'expert',       label: 'Expert Filter Matches',  icon: '🎯' },
-      { id: 'trade',        label: 'High Conviction List',   icon: '💡' },
-      { id: 'breakouts',    label: 'Breakout Patterns',      icon: '⚡' },
-      { id: 'volsurge',     label: 'Volume Surge',           icon: '🔥' },
-      { id: 'accumulation', label: 'Accumulation Patterns',  icon: '🏦' },
+      { id: 'all',          label: 'All Stocks',           icon: '📊' },
+      { id: 'aplus',        label: '52 Week Leaders',      icon: '⭐', badge: 'HOT' },
+      { id: 'expert',       label: 'Multi-Factor Score',   icon: '🎯' },
+      { id: 'trade',        label: 'Strong Grade Picks',   icon: '💡' },
+      { id: 'breakouts',    label: 'Breakout Scanner',     icon: '⚡' },
+      { id: 'volsurge',     label: 'Volume Breakout',      icon: '🔥' },
+      { id: 'accumulation', label: 'Accumulation Zone',    icon: '🏦' },
     ],
   },
   {
-    label: 'Technical Patterns',
+    label: 'Price & Pattern',
     items: [
-      { id: 'ema',          label: 'EMA Indicator Matches', icon: '📈', badge: 'NEW' },
-      { id: 'vcp',          label: 'VCP Patterns',          icon: '🔷' },
-      { id: 'rs',           label: 'RS Leaders',            icon: '🚀' },
-      { id: 'stage2',       label: 'Stage 2 (Weinstein)',   icon: '✅' },
-      { id: 'price_action', label: 'Price Action Patterns', icon: '📊' },
+      { id: 'ema',          label: 'Golden Crossover',     icon: '📈', badge: 'NEW' },
+      { id: 'vcp',          label: 'VCP Formation',        icon: '🔷' },
+      { id: 'rs',           label: 'RS Momentum',          icon: '🚀' },
+      { id: 'stage2',       label: 'Stage 2 Uptrend',      icon: '✅' },
+      { id: 'price_action', label: 'Price Action',         icon: '📉' },
     ],
   },
   {
-    label: 'Fundamental Screens',
+    label: 'Value & Quality',
     items: [
-      { id: 'fundamentals',   label: 'Fundamental Strength', icon: '💎' },
-      { id: 'value_screen',   label: 'Value Screens',        icon: '💰' },
-      { id: 'quality_screen', label: 'Quality Screens',      icon: '🏆' },
+      { id: 'fundamentals',   label: 'Fundamental Score',    icon: '💎' },
+      { id: 'value_screen',   label: 'Undervalued Growth',   icon: '💰' },
+      { id: 'quality_screen', label: 'Quality & Blue Chips', icon: '🏆' },
     ],
   },
   {
-    label: 'Market',
+    label: 'Market Overview',
     items: [
       { id: 'sectors',      label: 'Sector Strength',        icon: '🏭' },
     ],

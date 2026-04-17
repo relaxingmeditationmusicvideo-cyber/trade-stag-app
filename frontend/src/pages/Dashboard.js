@@ -74,27 +74,27 @@ function Dashboard({ data, loading }) {
         <div className="stat-card"><div className="stat-label">Analyzed</div><div className="stat-val">{stocks.length}</div><div className="stat-sub">NSE 500</div></div>
         <div className="stat-card"><div className="stat-label">A+ / A Grade</div><div className="stat-val text-orange">{(stats.grades['A+'] || 0) + (stats.grades['A'] || 0)}</div><div className="stat-sub">Elite setups</div></div>
         <div className="stat-card"><div className="stat-label">B+ Grade</div><div className="stat-val text-cyan">{stats.grades['B+'] || 0}</div><div className="stat-sub">Tradeable</div></div>
-        <div className="stat-card"><div className="stat-label">Multi-Factor Leaders</div><div className="stat-val text-amber">{counts.expert || 0}</div><div className="stat-sub">13-pt checklist</div></div>
-        <div className="stat-card"><div className="stat-label">Breakouts</div><div className="stat-val text-orange">{counts.breakouts || 0}</div><div className="stat-sub">Active</div></div>
-        <div className="stat-card"><div className="stat-label">Vol Surge</div><div className="stat-val text-amber">{counts.volsurge || 0}</div><div className="stat-sub">Above avg</div></div>
-        <div className="stat-card"><div className="stat-label">RS Elite</div><div className="stat-val text-purple">{counts.rs || 0}</div><div className="stat-sub">{'>'}90 percentile</div></div>
-        <div className="stat-card"><div className="stat-label">Stage 2</div><div className="stat-val text-cyan">{counts.stage2 || 0}</div><div className="stat-sub">Uptrend</div></div>
+        <div className="stat-card"><div className="stat-label">Multi-Factor Score</div><div className="stat-val text-amber">{counts.expert || 0}</div><div className="stat-sub">13-pt checklist</div></div>
+        <div className="stat-card"><div className="stat-label">Breakout Scanner</div><div className="stat-val text-orange">{counts.breakouts || 0}</div><div className="stat-sub">Active</div></div>
+        <div className="stat-card"><div className="stat-label">Volume Breakout</div><div className="stat-val text-amber">{counts.volsurge || 0}</div><div className="stat-sub">Above avg</div></div>
+        <div className="stat-card"><div className="stat-label">RS Momentum</div><div className="stat-val text-purple">{counts.rs || 0}</div><div className="stat-sub">{'>'}90 percentile</div></div>
+        <div className="stat-card"><div className="stat-label">Stage 2 Uptrend</div><div className="stat-val text-cyan">{counts.stage2 || 0}</div><div className="stat-sub">Weinstein</div></div>
       </div>
 
       {/* Quick scanner cards */}
-      <h3 className="section-h">Quick Scanners</h3>
+      <h3 className="section-h">Popular Screeners</h3>
       <div className="scanner-grid">
         {[
-          { id: 'aplus',        name: 'Top Scoring Stocks',    icon: '⭐', color: '#d4a024' },
-          { id: 'expert',       name: 'Multi-Factor Leaders',    icon: '🎯', color: '#22d3ee' },
-          { id: 'breakouts',    name: 'Breakouts',       icon: '⚡', color: '#fbbf24' },
-          { id: 'volsurge',     name: 'Volume Surge',       icon: '🔥', color: '#ef4444' },
-          { id: 'vcp',          name: 'Volatility Contraction',      icon: '🔷', color: '#06b6d4' },
-          { id: 'rs',           name: 'Relative Strength Leaders',      icon: '🚀', color: '#a78bfa' },
-          { id: 'stage2',       name: 'Stage 2 (Weinstein)',         icon: '✅', color: '#10b981' },
-          { id: 'ema',          name: 'EMA Indicator Matches',     icon: '📈', color: '#84cc16' },
+          { id: 'aplus',        name: '52 Week Leaders',      icon: '⭐', color: '#d4a024' },
+          { id: 'expert',       name: 'Multi-Factor Score',   icon: '🎯', color: '#22d3ee' },
+          { id: 'breakouts',    name: 'Breakout Scanner',     icon: '⚡', color: '#fbbf24' },
+          { id: 'volsurge',     name: 'Volume Breakout',      icon: '🔥', color: '#ef4444' },
+          { id: 'vcp',          name: 'VCP Formation',        icon: '🔷', color: '#06b6d4' },
+          { id: 'rs',           name: 'RS Momentum',          icon: '🚀', color: '#a78bfa' },
+          { id: 'stage2',       name: 'Stage 2 Uptrend',      icon: '✅', color: '#10b981' },
+          { id: 'ema',          name: 'Golden Crossover',     icon: '📈', color: '#84cc16' },
         ].map(s => (
-          <Link to={`/scanner/${s.id}`} className="scanner-card" key={s.id}>
+          <Link to={`/app/scanner/${s.id}`} className="scanner-card" key={s.id}>
             <div className="sc-icon" style={{ color: s.color }}>{s.icon}</div>
             <div className="sc-info">
               <div className="sc-name">{s.name}</div>

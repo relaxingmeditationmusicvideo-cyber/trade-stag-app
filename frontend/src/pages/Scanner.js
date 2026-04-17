@@ -3,22 +3,24 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { formatPrice, formatPct, gradeBg } from '../App';
 
 // ─── Scanner config: each scanner = filter + default sort + label ───
+// Names are SEBI-neutral, inspired by StockMagnets naming conventions.
+// Logic and filter parameters are UNCHANGED.
 const SCANNERS = {
-  all:           { name: 'All Stocks',     icon: '📊', filter: () => true,                                  sort: 'score', dir: 'desc' },
-  aplus:         { name: 'Top Scoring Stocks',   icon: '⭐', filter: r => r.flag_aplus,                            sort: 'score', dir: 'desc' },
-  expert:        { name: 'Multi-Factor Leaders',   icon: '🎯', filter: r => r.flag_expert_pick,                     sort: 'expert_yes', dir: 'desc' },
-  trade:         { name: 'High Conviction Setups',    icon: '💡', filter: r => r.flag_strong_grade && !r.pledge_danger, sort: 'confidence_pct', dir: 'desc' },
-  breakouts:     { name: 'Breakout Patterns',      icon: '⚡', filter: r => r.flag_breakout,                        sort: 'score', dir: 'desc' },
-  volsurge:      { name: 'Volume Surge',      icon: '🔥', filter: r => r.flag_vol_surge,                       sort: 'vol_ratio', dir: 'desc' },
-  accumulation:  { name: 'Accumulation Patterns',   icon: '🏦', filter: r => r.flag_accumulation,                    sort: 'accum_score', dir: 'desc' },
-  ema:           { name: 'EMA Indicator Matches',    icon: '📈', filter: r => r.flag_ema_scanner,                     sort: 'score', dir: 'desc' },
-  vcp:           { name: 'Volatility Contraction',     icon: '🔷', filter: r => r.flag_vcp,                             sort: 'vcp_score', dir: 'desc' },
-  rs:            { name: 'Relative Strength Leaders',     icon: '🚀', filter: r => r.flag_rs_elite,                        sort: 'rs_percentile', dir: 'desc' },
-  stage2:        { name: 'Stage 2 (Weinstein)',        icon: '✅', filter: r => r.flag_stage2,                          sort: 'score', dir: 'desc' },
-  price_action:  { name: 'Price Action Patterns',   icon: '📊', filter: r => r.flag_price_action,                    sort: 'score', dir: 'desc' },
-  fundamentals:  { name: 'Fundamental Strength',   icon: '💎', filter: r => r.flag_fund_strong,                     sort: 'fund_score', dir: 'desc' },
-  value_screen:  { name: 'Value Screens',  icon: '💰', filter: r => r.flag_value_screen,                   sort: 'pe_ratio', dir: 'asc' },
-  quality_screen:{ name: 'Quality Screens', icon: '🏆', filter: r => r.flag_quality_screen,                 sort: 'fund_score', dir: 'desc' },
+  all:           { name: 'All Stocks',           icon: '📊', filter: () => true,                                  sort: 'score', dir: 'desc' },
+  aplus:         { name: '52 Week Leaders',      icon: '⭐', filter: r => r.flag_aplus,                            sort: 'score', dir: 'desc' },
+  expert:        { name: 'Multi-Factor Score',   icon: '🎯', filter: r => r.flag_expert_pick,                     sort: 'expert_yes', dir: 'desc' },
+  trade:         { name: 'Strong Grade Picks',   icon: '💡', filter: r => r.flag_strong_grade && !r.pledge_danger, sort: 'confidence_pct', dir: 'desc' },
+  breakouts:     { name: 'Breakout Scanner',     icon: '⚡', filter: r => r.flag_breakout,                        sort: 'score', dir: 'desc' },
+  volsurge:      { name: 'Volume Breakout',      icon: '🔥', filter: r => r.flag_vol_surge,                       sort: 'vol_ratio', dir: 'desc' },
+  accumulation:  { name: 'Accumulation Zone',    icon: '🏦', filter: r => r.flag_accumulation,                    sort: 'accum_score', dir: 'desc' },
+  ema:           { name: 'Golden Crossover',     icon: '📈', filter: r => r.flag_ema_scanner,                     sort: 'score', dir: 'desc' },
+  vcp:           { name: 'VCP Formation',        icon: '🔷', filter: r => r.flag_vcp,                             sort: 'vcp_score', dir: 'desc' },
+  rs:            { name: 'RS Momentum',          icon: '🚀', filter: r => r.flag_rs_elite,                        sort: 'rs_percentile', dir: 'desc' },
+  stage2:        { name: 'Stage 2 Uptrend',      icon: '✅', filter: r => r.flag_stage2,                          sort: 'score', dir: 'desc' },
+  price_action:  { name: 'Price Action',         icon: '📉', filter: r => r.flag_price_action,                    sort: 'score', dir: 'desc' },
+  fundamentals:  { name: 'Fundamental Score',    icon: '💎', filter: r => r.flag_fund_strong,                     sort: 'fund_score', dir: 'desc' },
+  value_screen:  { name: 'Undervalued Growth',   icon: '💰', filter: r => r.flag_value_screen,                   sort: 'pe_ratio', dir: 'asc' },
+  quality_screen:{ name: 'Quality & Blue Chips', icon: '🏆', filter: r => r.flag_quality_screen,                 sort: 'fund_score', dir: 'desc' },
 };
 
 // ─── Filter chips definition ───

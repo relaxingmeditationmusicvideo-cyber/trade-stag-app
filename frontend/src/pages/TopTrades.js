@@ -21,8 +21,8 @@ function TopTrades({ api }) {
 
   return (
     <div>
-      <h1 className="page-title">Top Scoring Setups</h1>
-      <p className="page-subtitle">Highest-scoring setups ranked by multi-factor analysis with position sizing</p>
+      <h1 className="page-title">Strong Grade Picks</h1>
+      <p className="page-subtitle">Top-rated stocks ranked by multi-factor score with position sizing</p>
 
       {/* Capital Input */}
       <div className="filter-bar mb-6">
