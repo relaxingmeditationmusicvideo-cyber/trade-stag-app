@@ -13,8 +13,8 @@ const EXPERT_LABELS = {
   d2_candle_quality_ok: 'Strong candle — high delivery',
   e1_volume_surge: 'Breakout volume >= 1.5x average',
   e2_volume_contraction: 'Volume contraction after surge',
-  f1_indicators_aligned: 'RSI 52-68, ADX >= 20, Supertrend BUY',
-  g1_stoploss_defined: 'Stop-loss defined, risk <= 7%',
+  f1_indicators_aligned: 'RSI 52-68, ADX >= 20, Supertrend Bullish',
+  g1_stoploss_defined: 'ATR risk level defined, risk <= 7%',
   g2_rr_minimum: 'Risk : Reward >= 1:2',
 };
 
@@ -79,7 +79,7 @@ function StockDetail({ api }) {
             </span>
             {stock.is_fno && <span className="signal-tag">F&O</span>}
             <span className={`signal-tag ${stock.expert_decision === 'CONVICTION' ? 'bullish' : stock.expert_decision === 'TRADE' ? '' : 'bearish'}`}>
-              {stock.expert_decision}
+              {(stock.expert_decision || '').replace('CONVICTION', 'Strong Match').replace('TRADE', 'Match')}
             </span>
           </div>
           <div className="text-sm text-muted" style={{ marginTop: 4 }}>
@@ -96,9 +96,15 @@ function StockDetail({ api }) {
 
       {/* Tabs */}
       <div className="tabs">
-        {['overview', 'expert', 'trade', 'institutional', 'breakdown'].map(t => (
-          <div key={t} className={`tab ${tab === t ? 'active' : ''}`} onClick={() => setTab(t)}>
-            {t.charAt(0).toUpperCase() + t.slice(1)}
+        {[
+          { id: 'overview', label: 'Overview' },
+          { id: 'expert', label: 'Checklist' },
+          { id: 'trade', label: 'Tech Levels' },
+          { id: 'institutional', label: 'Institutional' },
+          { id: 'breakdown', label: 'Breakdown' },
+        ].map(t => (
+          <div key={t.id} className={`tab ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)}>
+            {t.label}
           </div>
         ))}
       </div>
@@ -116,7 +122,7 @@ function StockDetail({ api }) {
               </div>
             </div>
             <div className="kpi-card">
-              <div className="kpi-label">Confidence</div>
+              <div className="kpi-label">Criteria Met</div>
               <div className="kpi-value" style={{ color: getScoreColor(stock.confidence_pct) }}>{stock.confidence_pct}%</div>
             </div>
             <div className="kpi-card">
@@ -198,16 +204,23 @@ function StockDetail({ api }) {
             <div className="card">
               <div className="card-title">Active Signals</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                {(stock.active_signals || []).map((sig, i) => (
-                  <span key={i} className={`signal-tag ${
-                    sig.includes('BUY') || sig.includes('Cross') || sig.includes('Breakout') || sig.includes('Bullish') ? 'bullish' :
-                    sig.includes('Sell') || sig.includes('Death') || sig.includes('Risk') ? 'bearish' : ''
-                  }`} style={{ fontSize: 11, padding: '3px 8px' }}>
-                    {sig.replace(/[🔥🟢✅📈📋🚨💀🌟🕯📶🎯⚡⚠️]/g, '').trim()}
-                  </span>
-                ))}
+                {(stock.active_signals || []).map((sig, i) => {
+                  const cleanSig = sig
+                    .replace(/[🔥🟢✅📈📋🚨💀🌟🕯📶🎯⚡⚠️]/g, '')
+                    .replace(/\bBUY\b/gi, 'Bullish Signal')
+                    .replace(/\bSell\b/gi, 'Bearish Signal')
+                    .trim();
+                  return (
+                    <span key={i} className={`signal-tag ${
+                      cleanSig.includes('Bullish') || cleanSig.includes('Cross') || cleanSig.includes('Breakout') ? 'bullish' :
+                      cleanSig.includes('Bearish') || cleanSig.includes('Death') || cleanSig.includes('Risk') ? 'bearish' : ''
+                    }`} style={{ fontSize: 11, padding: '3px 8px' }}>
+                      {cleanSig}
+                    </span>
+                  );
+                })}
                 {(!stock.active_signals || stock.active_signals.length === 0) && (
-                  <span className="text-muted text-sm">No active signals</span>
+                  <span className="text-muted text-sm">No active signals detected</span>
                 )}
               </div>
             </div>
@@ -229,13 +242,13 @@ function StockDetail({ api }) {
                   {stock.expert_yes}/13 YES
                 </span>
                 <span className="text-muted" style={{ marginLeft: 12 }}>
-                  {stock.expert_yes >= 10 ? 'CONVICTION TRADE — Aggressive position' :
-                   stock.expert_yes >= 7 ? 'NORMAL TRADE — Standard position' :
-                   'SKIP — No trade regardless of score'}
+                  {stock.expert_yes >= 10 ? 'STRONG MATCH — Most criteria met' :
+                   stock.expert_yes >= 7 ? 'MODERATE MATCH — Above average criteria' :
+                   'WEAK MATCH — Few criteria met'}
                 </span>
               </div>
               <span className={`grade ${gradeClass(stock.grade)}`} style={{ fontSize: 16, width: 'auto', padding: '4px 16px', height: 'auto' }}>
-                {stock.expert_decision}
+                {(stock.expert_decision || '').replace('CONVICTION', 'Strong Match').replace('TRADE', 'Match')}
               </span>
             </div>
           </div>
@@ -271,23 +284,37 @@ function StockDetail({ api }) {
       {/* Key Technical Levels Tab */}
       {tab === 'trade' && (
         <div>
+          <div className="compliance-notice" style={{
+            background: 'rgba(212,160,36,0.08)',
+            border: '1px solid rgba(212,160,36,0.25)',
+            borderRadius: 8,
+            padding: '10px 16px',
+            marginBottom: 12,
+            fontSize: 11,
+            color: 'var(--muted)',
+            lineHeight: 1.5
+          }}>
+            <strong style={{ color: 'var(--amber)' }}>Illustrative only:</strong> These levels are auto-calculated
+            from historical price data (support/resistance, ATR) and are NOT buy/sell recommendations.
+            Do your own research before investing.
+          </div>
           <div className="card mb-6">
-            <div className="card-title">Key Technical Levels — {ts.setup_type || 'N/A'}</div>
+            <div className="card-title">Illustrative Technical Levels — {ts.setup_type || 'N/A'}</div>
             <div className="trade-setup">
               <div className="ts-item">
-                <div className="ts-label">Entry</div>
+                <div className="ts-label">Near Support</div>
                 <div className="ts-value text-cyan">{formatNum(ts.entry)}</div>
               </div>
               <div className="ts-item">
-                <div className="ts-label">Stop Loss</div>
+                <div className="ts-label">ATR Risk Level</div>
                 <div className="ts-value text-red">{formatNum(ts.stop_loss)}</div>
               </div>
               <div className="ts-item">
-                <div className="ts-label">Target 1</div>
+                <div className="ts-label">Resistance 1</div>
                 <div className="ts-value text-green">{formatNum(ts.target1)}</div>
               </div>
               <div className="ts-item">
-                <div className="ts-label">Target 2</div>
+                <div className="ts-label">Resistance 2</div>
                 <div className="ts-value text-green">{formatNum(ts.target2)}</div>
               </div>
             </div>
@@ -314,7 +341,7 @@ function StockDetail({ api }) {
 
           {/* Position Sizing Calculator */}
           <div className="card">
-            <div className="card-title">Position Sizing (₹5,00,000 Capital / 2% Risk)</div>
+            <div className="card-title">Hypothetical Position Calculator (₹5,00,000 Capital / 2% Risk)</div>
             {(() => {
               const capital = 500000;
               const riskPct = 2;

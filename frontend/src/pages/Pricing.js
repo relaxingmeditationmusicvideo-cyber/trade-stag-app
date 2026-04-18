@@ -1,11 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-// NOTE: These are placeholder tiers. Fee collection requires:
-//  (1) SEBI Research Analyst registration (INH number) if offering analysis, OR
-//  (2) Positioning strictly as an educational/data tool with appropriate licensing, OR
-//  (3) SEBI Investment Adviser registration (INA number) if giving specific advice.
-// See SEBI_COMPLIANCE.md before enabling payments.
+// Trade Stag is positioned as an educational screening tool.
+// Fee is for software access / data visualization — NOT for investment advice.
 
 const TIERS = [
   {
@@ -35,11 +32,11 @@ const TIERS = [
     name: 'Pro',
     price: '₹499',
     period: '/month',
-    tagline: 'Full screener access for serious researchers',
+    tagline: 'Full screening tools for active researchers',
     features: [
       'Everything in Free',
-      'All 15+ screeners',
-      'Full stock scorecards',
+      'All 15+ screening tools',
+      'Full stock data cards',
       'Pattern detection (VCP, Breakout, NR7…)',
       'Sector strength analytics',
       'Score breakdowns',
@@ -56,7 +53,7 @@ const TIERS = [
     name: 'Premium',
     price: '₹1,499',
     period: '/month',
-    tagline: 'For active researchers who want everything',
+    tagline: 'All tools and data for power users',
     features: [
       'Everything in Pro',
       'Historical scans (90-day archive)',
@@ -64,7 +61,7 @@ const TIERS = [
       'Advanced filters & combinations',
       'API access (beta)',
       'Priority support',
-      'Weekly market summary email',
+      'Weekly market data digest',
     ],
     limitations: [],
     cta: 'Upgrade to Premium',
@@ -75,7 +72,7 @@ const TIERS = [
 
 const FAQ = [
   { q: 'Is Trade Stag giving investment advice?',
-    a: 'No. Trade Stag is a technical screening and educational tool. It analyzes publicly available end-of-day data and presents patterns, scores, and screener matches. Nothing displayed constitutes investment advice or a recommendation to buy or sell any security. Always consult a SEBI-registered adviser before making investment decisions.' },
+    a: 'No. Trade Stag is an information platform and screening tool. It processes publicly available end-of-day data and presents patterns, scores, and screener matches for educational and informational purposes. Nothing displayed constitutes investment advice or a recommendation to buy, sell, or hold any security. Trade Stag is not a SEBI-registered Investment Adviser or Research Analyst. Always consult a SEBI-registered professional before making investment decisions.' },
   { q: 'Can I cancel any time?',
     a: 'Yes. Subscriptions are month-to-month and you can cancel from your account settings. Your access continues until the end of the current billing period.' },
   { q: 'Do you offer refunds?',
@@ -129,10 +126,13 @@ export default function Pricing() {
       </section>
 
       <section className="pricing-disclaimer-box">
-        <strong>Regulatory note:</strong> Trade Stag is positioned as a technical
-        screening & educational tool. It is not a SEBI-registered Research Analyst
-        or Investment Adviser service. Nothing displayed constitutes investment
-        advice. See full <Link to="/disclaimer">disclaimer</Link>.
+        <strong>Regulatory note:</strong> Trade Stag is an information platform and
+        screening tool for educational and informational purposes. Trade Stag is NOT a
+        SEBI-registered Investment Adviser, Research Analyst, or Portfolio Manager.
+        Nothing displayed constitutes investment advice, a recommendation, or a solicitation
+        to buy or sell any security. Investment in securities market are subject to market
+        risks. Read all related documents carefully before investing. See full{' '}
+        <Link to="/disclaimer">disclaimer</Link>.
       </section>
     </div>
   );

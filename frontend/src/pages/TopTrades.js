@@ -15,33 +15,55 @@ function TopTrades({ api }) {
       .catch(() => setLoading(false));
   }, [api, capital]);
 
-  if (loading) return <div className="loading-spinner">Loading top trades...</div>;
+  if (loading) return <div className="loading-spinner">Loading top scored stocks...</div>;
 
   const trades = data?.trades || [];
 
   return (
     <div>
-      <h1 className="page-title">Strong Grade Picks</h1>
-      <p className="page-subtitle">Top-rated stocks ranked by multi-factor score with position sizing</p>
+      <h1 className="page-title">Top Scored Stocks</h1>
+      <p className="page-subtitle">Stocks ranked by automated multi-factor screening score</p>
+
+      {/* Illustrative disclaimer */}
+      <div className="compliance-notice" style={{
+        background: 'rgba(212,160,36,0.08)',
+        border: '1px solid rgba(212,160,36,0.25)',
+        borderRadius: 8,
+        padding: '10px 16px',
+        marginBottom: 16,
+        fontSize: 11,
+        color: 'var(--muted)',
+        lineHeight: 1.5
+      }}>
+        <strong style={{ color: 'var(--amber)' }}>Illustrative only:</strong> The technical levels shown below
+        (support, resistance, ATR-based ranges) are auto-calculated from historical price data and are NOT
+        buy/sell recommendations. Always do your own research and consult a SEBI-registered adviser before
+        making any investment decision.
+      </div>
 
       {/* Capital Input */}
       <div className="filter-bar mb-6">
         <div className="flex items-center gap-2">
-          <span className="text-sm text-muted">Trading Capital:</span>
+          <span className="text-sm text-muted">Hypothetical Capital:</span>
           <input
             type="number"
             value={capital}
             onChange={e => setCapital(Number(e.target.value))}
             style={{ width: 160 }}
           />
-          <span className="text-sm text-muted">Risk: {data?.risk_pct}% per trade</span>
+          <span className="text-sm text-muted">Illustrative risk: {data?.risk_pct}% per position</span>
         </div>
       </div>
 
-      {/* Trade Cards */}
+      {/* Stock Cards */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {trades.map((trade, idx) => {
           const ts = trade.trade_setup || {};
+          /* Map advisory language to neutral screening terms */
+          const decisionLabel = (trade.expert_decision || '')
+            .replace('CONVICTION', 'Strong Match')
+            .replace('BUY', 'Bullish Pattern')
+            .replace('SELL', 'Bearish Pattern');
           return (
             <div
               key={trade.symbol}
@@ -58,9 +80,9 @@ function TopTrades({ api }) {
                     <div className="flex items-center gap-2">
                       <span style={{ fontSize: 18, fontWeight: 700 }}>{trade.symbol}</span>
                       <span className={`grade ${gradeClass(trade.grade)}`}>{trade.grade}</span>
-                      <span className={`signal-tag ${trade.expert_decision === 'CONVICTION' ? 'bullish' : ''}`}>
-                        {trade.expert_decision}
-                      </span>
+                      {decisionLabel && (
+                        <span className="signal-tag">{decisionLabel}</span>
+                      )}
                     </div>
                     <div className="text-xs text-muted">{trade.name} — {trade.sector}</div>
                   </div>
@@ -72,50 +94,58 @@ function TopTrades({ api }) {
                 </div>
               </div>
 
-              {/* Trade details grid */}
+              {/* Technical data grid — illustrative levels */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8 }}>
                 <div style={{ textAlign: 'center', padding: '8px 4px', background: 'var(--bg4)', borderRadius: 6 }}>
                   <div className="text-xs text-muted">Score</div>
                   <div className="font-bold" style={{ color: getScoreColor(trade.score) }}>{trade.score}</div>
                 </div>
                 <div style={{ textAlign: 'center', padding: '8px 4px', background: 'var(--bg4)', borderRadius: 6 }}>
-                  <div className="text-xs text-muted">Confidence</div>
+                  <div className="text-xs text-muted">Match %</div>
                   <div className="font-bold text-cyan">{trade.confidence_pct}%</div>
                 </div>
                 <div style={{ textAlign: 'center', padding: '8px 4px', background: 'var(--bg4)', borderRadius: 6 }}>
-                  <div className="text-xs text-muted">Entry</div>
+                  <div className="text-xs text-muted">Near Support</div>
                   <div className="font-bold text-cyan">{formatNum(ts.entry)}</div>
                 </div>
                 <div style={{ textAlign: 'center', padding: '8px 4px', background: 'var(--bg4)', borderRadius: 6 }}>
-                  <div className="text-xs text-muted">Stop Loss</div>
+                  <div className="text-xs text-muted">ATR Risk</div>
                   <div className="font-bold text-red">{formatNum(ts.stop_loss)}</div>
                 </div>
                 <div style={{ textAlign: 'center', padding: '8px 4px', background: 'var(--bg4)', borderRadius: 6 }}>
-                  <div className="text-xs text-muted">Target 1</div>
+                  <div className="text-xs text-muted">Resistance</div>
                   <div className="font-bold text-green">{formatNum(ts.target1)}</div>
                 </div>
                 <div style={{ textAlign: 'center', padding: '8px 4px', background: 'var(--bg4)', borderRadius: 6 }}>
-                  <div className="text-xs text-muted">Qty</div>
+                  <div className="text-xs text-muted">Lot Size*</div>
                   <div className="font-bold">{trade.position_qty}</div>
                 </div>
                 <div style={{ textAlign: 'center', padding: '8px 4px', background: 'var(--bg4)', borderRadius: 6 }}>
-                  <div className="text-xs text-muted">R:R</div>
+                  <div className="text-xs text-muted">R:R Ratio</div>
                   <div className="font-bold" style={{ color: ts.rr_ratio >= 2 ? 'var(--green)' : 'var(--amber)' }}>
                     1:{ts.rr_ratio?.toFixed(1)}
                   </div>
                 </div>
               </div>
+              <div style={{ marginTop: 4, fontSize: 9, color: '#4a5568' }}>
+                * Lot Size is a hypothetical illustration based on entered capital and ATR-based risk. Not a recommendation.
+              </div>
 
-              {/* Signals */}
+              {/* Signals — neutral pattern language */}
               <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                {(trade.active_signals || []).slice(0, 5).map((sig, i) => (
-                  <span key={i} className={`signal-tag ${
-                    sig.includes('BUY') || sig.includes('Breakout') || sig.includes('Bullish') ? 'bullish' :
-                    sig.includes('Sell') || sig.includes('Death') ? 'bearish' : ''
-                  }`}>
-                    {sig.replace(/[🔥🟢✅📈📋🚨💀🌟🕯📶🎯⚡⚠️]/g, '').trim()}
-                  </span>
-                ))}
+                {(trade.active_signals || []).slice(0, 5).map((sig, i) => {
+                  /* Rewrite BUY/Sell to neutral pattern detection language */
+                  const cleanSig = sig
+                    .replace(/[🔥🟢✅📈📋🚨💀🌟🕯📶🎯⚡⚠️]/g, '')
+                    .replace(/\bBUY\b/gi, 'Bullish Signal')
+                    .replace(/\bSell\b/gi, 'Bearish Signal')
+                    .trim();
+                  const cls = cleanSig.includes('Bullish') || cleanSig.includes('Breakout') ? 'bullish' :
+                              cleanSig.includes('Bearish') || cleanSig.includes('Death') ? 'bearish' : '';
+                  return (
+                    <span key={i} className={`signal-tag ${cls}`}>{cleanSig}</span>
+                  );
+                })}
               </div>
             </div>
           );

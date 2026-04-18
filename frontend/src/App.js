@@ -29,7 +29,7 @@ const SIDEBAR_GROUPS = [
       { id: 'all',          label: 'All Stocks',           icon: '📊' },
       { id: 'aplus',        label: '52 Week Leaders',      icon: '⭐', badge: 'HOT' },
       { id: 'expert',       label: 'Multi-Factor Score',   icon: '🎯' },
-      { id: 'trade',        label: 'Strong Grade Picks',   icon: '💡' },
+      { id: 'trade',        label: 'High Grade Stocks',    icon: '💡' },
       { id: 'breakouts',    label: 'Breakout Scanner',     icon: '⚡' },
       { id: 'volsurge',     label: 'Volume Breakout',      icon: '🔥' },
       { id: 'accumulation', label: 'Accumulation Zone',    icon: '🏦' },
@@ -185,6 +185,10 @@ function AppShell() {
   return (
     <div className="app-layout">
       <DisclaimerModal />
+      <div className="app-disclaimer-bar">
+        Not investment advice. For educational & informational purposes only. Trade Stag is not SEBI-registered.
+        <a href="/disclaimer" style={{ color: 'var(--amber)', marginLeft: 6 }}>Read disclaimer</a>
+      </div>
       <div className="main-container">
         <Sidebar counts={data.counts} />
         <main className="content">

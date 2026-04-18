@@ -45,6 +45,25 @@ html, body, #root {
   overflow: hidden;
 }
 
+/* Persistent in-app disclaimer bar */
+.app-disclaimer-bar {
+  background: rgba(212,160,36,0.06);
+  border-bottom: 1px solid rgba(212,160,36,0.15);
+  padding: 4px 16px;
+  font-size: 10px;
+  color: var(--muted);
+  text-align: center;
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+.app-disclaimer-bar a {
+  text-decoration: none;
+  font-weight: 600;
+}
+.app-disclaimer-bar a:hover {
+  text-decoration: underline;
+}
+
 .ticker-bar {
   height: var(--ticker-height);
   background: var(--bg2);

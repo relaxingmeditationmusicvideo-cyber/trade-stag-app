@@ -72,8 +72,8 @@ function Dashboard({ data, loading }) {
       {/* Stat grid */}
       <div className="stat-grid">
         <div className="stat-card"><div className="stat-label">Analyzed</div><div className="stat-val">{stocks.length}</div><div className="stat-sub">NSE 500</div></div>
-        <div className="stat-card"><div className="stat-label">A+ / A Grade</div><div className="stat-val text-orange">{(stats.grades['A+'] || 0) + (stats.grades['A'] || 0)}</div><div className="stat-sub">Elite setups</div></div>
-        <div className="stat-card"><div className="stat-label">B+ Grade</div><div className="stat-val text-cyan">{stats.grades['B+'] || 0}</div><div className="stat-sub">Tradeable</div></div>
+        <div className="stat-card"><div className="stat-label">A+ / A Grade</div><div className="stat-val text-orange">{(stats.grades['A+'] || 0) + (stats.grades['A'] || 0)}</div><div className="stat-sub">Top graded</div></div>
+        <div className="stat-card"><div className="stat-label">B+ Grade</div><div className="stat-val text-cyan">{stats.grades['B+'] || 0}</div><div className="stat-sub">Above average</div></div>
         <div className="stat-card"><div className="stat-label">Multi-Factor Score</div><div className="stat-val text-amber">{counts.expert || 0}</div><div className="stat-sub">13-pt checklist</div></div>
         <div className="stat-card"><div className="stat-label">Breakout Scanner</div><div className="stat-val text-orange">{counts.breakouts || 0}</div><div className="stat-sub">Active</div></div>
         <div className="stat-card"><div className="stat-label">Volume Breakout</div><div className="stat-val text-amber">{counts.volsurge || 0}</div><div className="stat-sub">Above avg</div></div>
