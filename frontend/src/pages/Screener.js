@@ -104,13 +104,13 @@ function Screener({ api }) {
 
         <select value={filters.signal} onChange={e => handleFilterChange('signal', e.target.value)}>
           <option value="">All Signals</option>
-          <option value="supertrend">Supertrend BUY</option>
+          <option value="supertrend">Supertrend Bullish</option>
           <option value="breakout">Breakout</option>
           <option value="goldencross">Golden Cross</option>
           <option value="nr7">NR7</option>
           <option value="vcp">VCP</option>
           <option value="flatbase">Flat Base</option>
-          <option value="bulkbuy">Bulk Buy</option>
+          <option value="bulkbuy">Bulk Deal</option>
         </select>
       </div>
 
@@ -191,14 +191,16 @@ function Screener({ api }) {
                     </td>
                     <td>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 2, maxWidth: 200 }}>
-                        {(stock.active_signals || []).slice(0, 3).map((sig, i) => (
-                          <span key={i} className={`signal-tag ${
-                            sig.includes('BUY') || sig.includes('Cross') || sig.includes('Breakout') ? 'bullish' :
-                            sig.includes('Sell') || sig.includes('Death') ? 'bearish' : ''
-                          }`}>
-                            {sig.replace(/[🔥🟢✅📈📋🚨💀🌟🕯📶🎯⚡⚠️]/g, '').trim()}
-                          </span>
-                        ))}
+                        {(stock.active_signals || []).slice(0, 3).map((sig, i) => {
+                          const clean = sig.replace(/[🔥🟢✅📈📋🚨💀🌟🕯📶🎯⚡⚠️]/g, '')
+                            .replace(/\bBUY\b/gi, 'Bullish Signal').replace(/\bSell\b/gi, 'Bearish Signal').trim();
+                          return (
+                            <span key={i} className={`signal-tag ${
+                              clean.includes('Bullish') || clean.includes('Cross') || clean.includes('Breakout') ? 'bullish' :
+                              clean.includes('Bearish') || clean.includes('Death') ? 'bearish' : ''
+                            }`}>{clean}</span>
+                          );
+                        })}
                         {(stock.active_signals || []).length > 3 && (
                           <span className="signal-tag neutral">+{stock.active_signals.length - 3}</span>
                         )}
