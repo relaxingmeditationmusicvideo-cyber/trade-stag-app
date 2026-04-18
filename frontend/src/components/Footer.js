@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import Logo from './Logo';
 
 export default function Footer() {
   return (
@@ -8,8 +9,7 @@ export default function Footer() {
       <div className="footer-top">
         <div className="footer-brand-col">
           <Link to="/" className="footer-brand-link">
-            <span className="text-amber">Trade</span>
-            <span className="text-green">Stag</span>
+            <Logo size={22} variant="full" />
           </Link>
           <p className="footer-tagline">
             Smart screening tool for the Indian equity market.

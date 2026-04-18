@@ -15,6 +15,7 @@ import PublicLayout from './components/PublicLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import DisclaimerModal from './components/DisclaimerModal';
 import { AuthProvider, useAuth } from './AuthContext';
+import Logo from './components/Logo';
 
 // Empty string = relative URL → browser uses current domain automatically.
 // In dev: set REACT_APP_API_URL=http://localhost:8000 in .env
@@ -72,8 +73,7 @@ function Sidebar({ counts }) {
     <nav className="sidebar">
       <div className="sidebar-brand">
         <Link to="/" className="sidebar-logo-mark">
-          <span className="brand-antler">🦌</span>
-          <span className="text-emerald">Trade</span><span className="text-gold">Stag</span>
+          <Logo size={26} variant="full" />
         </Link>
         <div className="sidebar-logo-sub">NSE 500 · India</div>
         <div className="sidebar-tagline">Screener & Analysis Platform</div>

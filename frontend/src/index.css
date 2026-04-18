@@ -99,16 +99,36 @@ html, body, #root {
 
 .sidebar-brand {
   padding: 16px 20px;
-  font-size: 18px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 8px;
   border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 
-.sidebar-brand .icon { font-size: 22px; }
-.sidebar-brand .text-cyan { color: var(--cyan); }
+/* ── Logo component styles ── */
+.logo-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+.logo-icon {
+  flex-shrink: 0;
+}
+.logo-text {
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+.logo-trade {
+  color: var(--text);
+}
+.logo-stag {
+  background: linear-gradient(135deg, #2dd4a0, #d4a024);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
 
 .sidebar-section {
   padding: 12px 0;
@@ -622,9 +642,8 @@ html, body, #root {
 
 /* ── Sidebar brand block ── */
 .sidebar-logo-mark {
-  font-size: 20px;
-  font-weight: 800;
-  letter-spacing: -0.3px;
+  text-decoration: none;
+  display: inline-flex;
   line-height: 1;
 }
 .sidebar-logo-sub {
@@ -1331,10 +1350,9 @@ html, body, #root {
   z-index: 100;
 }
 .public-brand {
-  font-size: 20px;
-  font-weight: 800;
-  letter-spacing: -0.5px;
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
 }
 .public-nav {
   display: flex;

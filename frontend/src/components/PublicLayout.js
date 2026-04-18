@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import Footer from './Footer';
+import Logo from './Logo';
 
 export default function PublicLayout({ children }) {
   const { user, logout } = useAuth();
@@ -10,7 +11,7 @@ export default function PublicLayout({ children }) {
     <div className="public-layout">
       <header className="public-header">
         <Link to="/" className="public-brand">
-          <span className="text-amber">Trade</span> <span className="text-green">Stag</span>
+          <Logo size={24} variant="full" />
         </Link>
         <nav className="public-nav">
           <Link to="/" className={loc.pathname === '/' ? 'active' : ''}>Home</Link>
