@@ -2001,6 +2001,98 @@ html, body, #root {
   font-weight: 600;
 }
 
+/* ─── Footer ─── */
+.site-footer {
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  padding: 0;
+}
+.footer-top {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 32px;
+  padding: 40px 40px 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.footer-brand-link {
+  font-size: 22px;
+  font-weight: 800;
+  text-decoration: none;
+  letter-spacing: -0.5px;
+  display: inline-block;
+  margin-bottom: 10px;
+}
+.footer-tagline {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+  max-width: 260px;
+}
+.footer-heading {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 14px;
+}
+.footer-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.footer-list a {
+  color: var(--muted);
+  font-size: 13px;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.footer-list a:hover {
+  color: var(--accent);
+}
+.footer-disclaimer {
+  border-top: 1px solid var(--border);
+  padding: 16px 40px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--muted);
+  text-align: center;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.footer-bottom {
+  border-top: 1px solid var(--border);
+  padding: 16px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--muted);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.footer-bottom-links {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.footer-bottom-links a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 12px;
+  transition: color 0.2s;
+}
+.footer-bottom-links a:hover {
+  color: var(--accent);
+}
+.footer-dot {
+  color: var(--border);
+}
+
 /* ─── Responsive: tablet ─── */
 @media (max-width: 1024px) {
   .hero-title { font-size: 36px; }
@@ -2065,8 +2157,20 @@ html, body, #root {
   .pricing-disclaimer-box { padding: 20px 16px; font-size: 12px; }
 
   /* Footer */
-  .footer { padding: 24px 16px; }
-  .footer-grid { grid-template-columns: 1fr; gap: 20px; text-align: center; }
+  .footer-top {
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    padding: 28px 20px 24px;
+  }
+  .footer-brand-link { font-size: 18px; }
+  .footer-tagline { max-width: 100%; }
+  .footer-disclaimer { padding: 14px 20px; font-size: 10px; }
+  .footer-bottom {
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px 20px;
+    text-align: center;
+  }
 }
 
 /* ─── Responsive: small phones ─── */
@@ -2080,4 +2184,6 @@ html, body, #root {
   .pricing-card { padding: 20px 14px; }
   .cta-box h2 { font-size: 20px; }
   .auth-card { padding: 24px 16px; }
+  .footer-top { grid-template-columns: 1fr; gap: 20px; padding: 24px 16px; text-align: center; }
+  .footer-tagline { margin: 0 auto; }
 }

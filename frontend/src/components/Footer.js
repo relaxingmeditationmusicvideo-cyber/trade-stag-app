@@ -1,60 +1,66 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-// NOTE: This footer displays a persistent SEBI disclaimer on every page.
-// DO NOT REMOVE THIS COMPONENT. See SEBI_COMPLIANCE.md.
-// Replace SEBI_RA_NUMBER below with your actual registration once issued.
-const SEBI_RA_NUMBER = 'REGISTRATION PENDING'; // e.g., 'INH000XXXXXX'
-
 export default function Footer() {
   return (
     <footer className="site-footer">
-      <div className="footer-grid">
-        <div className="footer-col">
-          <div className="footer-brand">
-            <span className="text-amber">Trade</span> <span className="text-green">Stag</span>
-          </div>
-          <p className="footer-tag">
-            Technical & fundamental screening tool for the Indian equity market.
-            NSE 500 universe. EOD data.
+      {/* ── Top row: brand + link columns ── */}
+      <div className="footer-top">
+        <div className="footer-brand-col">
+          <Link to="/" className="footer-brand-link">
+            <span className="text-amber">Trade</span>
+            <span className="text-green">Stag</span>
+          </Link>
+          <p className="footer-tagline">
+            Smart screening tool for the Indian equity market.
           </p>
         </div>
-        <div className="footer-col">
-          <div className="footer-col-title">Product</div>
-          <Link to="/pricing">Pricing</Link>
-          <Link to="/login">Log in</Link>
-          <Link to="/signup">Sign up</Link>
+
+        <div className="footer-links-col">
+          <h4 className="footer-heading">Product</h4>
+          <ul className="footer-list">
+            <li><Link to="/pricing">Pricing</Link></li>
+            <li><Link to="/signup">Sign Up</Link></li>
+            <li><Link to="/login">Log In</Link></li>
+          </ul>
         </div>
-        <div className="footer-col">
-          <div className="footer-col-title">Legal</div>
-          <Link to="/disclaimer">Disclaimer</Link>
-          <Link to="/terms">Terms of Service</Link>
-          <Link to="/privacy">Privacy Policy</Link>
+
+        <div className="footer-links-col">
+          <h4 className="footer-heading">Legal</h4>
+          <ul className="footer-list">
+            <li><Link to="/disclaimer">Disclaimer</Link></li>
+            <li><Link to="/terms">Terms of Service</Link></li>
+            <li><Link to="/privacy">Privacy Policy</Link></li>
+          </ul>
         </div>
-        <div className="footer-col">
-          <div className="footer-col-title">SEBI</div>
-          <div className="footer-sebi">SEBI RA No: <strong>{SEBI_RA_NUMBER}</strong></div>
-          <div className="footer-sebi-note">
-            Verify any RA/IA registration on the official SEBI website at sebi.gov.in
-          </div>
+
+        <div className="footer-links-col">
+          <h4 className="footer-heading">Support</h4>
+          <ul className="footer-list">
+            <li><a href="mailto:support@tradestag.com">Contact</a></li>
+          </ul>
         </div>
       </div>
 
+      {/* ── Disclaimer banner ── */}
       <div className="footer-disclaimer">
-        <strong>IMPORTANT DISCLAIMER:</strong> Trade Stag is a technical screening and
-        educational tool. Nothing displayed on this platform constitutes investment
-        advice, a recommendation to buy or sell any security, or a research report
-        under SEBI (Research Analysts) Regulations, 2014. All analysis is automated,
-        based on publicly available end-of-day data, and is provided "as is" without
-        any warranty of accuracy. Past performance does not indicate future results.
-        Investments in securities are subject to market risks. Read all scheme-related
-        documents carefully. Consult a SEBI-registered investment adviser before making
-        any investment decision. Trade Stag and its operators accept no liability for
-        any losses arising from use of this tool.
+        Investment in securities market are subject to market risks. Read all the
+        related documents carefully before investing. Trade Stag is not a
+        SEBI-registered Investment Adviser or Research Analyst. All content is for
+        informational and educational purposes only and should not be construed as
+        investment advice. Past performance is not indicative of future results.
       </div>
 
-      <div className="footer-copyright">
-        © {new Date().getFullYear()} Trade Stag. All rights reserved.
+      {/* ── Bottom bar ── */}
+      <div className="footer-bottom">
+        <span>&copy; {new Date().getFullYear()} Trade Stag. All rights reserved.</span>
+        <span className="footer-bottom-links">
+          <Link to="/disclaimer">Disclaimer</Link>
+          <span className="footer-dot">&middot;</span>
+          <Link to="/terms">Terms</Link>
+          <span className="footer-dot">&middot;</span>
+          <Link to="/privacy">Privacy</Link>
+        </span>
       </div>
     </footer>
   );
