@@ -2642,3 +2642,152 @@ html, body, #root {
   .footer-top { grid-template-columns: 1fr; gap: 20px; padding: 24px 16px; text-align: center; }
   .footer-tagline { margin: 0 auto; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   SUBSCRIPTION / PLAN GATING UI
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Trial banner (top of app) ─── */
+.trial-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 6px 16px;
+  background: linear-gradient(90deg, rgba(212,160,36,0.15), rgba(6,182,212,0.10));
+  border-bottom: 1px solid rgba(212,160,36,0.2);
+  font-size: 13px;
+  color: var(--amber);
+  flex-shrink: 0;
+}
+.trial-banner.expired {
+  background: linear-gradient(90deg, rgba(251,113,133,0.15), rgba(239,68,68,0.10));
+  border-bottom-color: rgba(251,113,133,0.3);
+  color: var(--red);
+}
+.trial-banner-btn {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 4px;
+  background: var(--amber);
+  color: #000;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+.trial-banner-btn:hover { opacity: 0.85; }
+.trial-banner.expired .trial-banner-btn {
+  background: var(--red);
+  color: #fff;
+}
+
+/* ─── Sidebar lock badge (PRO label on locked scanners) ─── */
+.si-lock {
+  margin-left: auto;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(212,160,36,0.2);
+  color: var(--amber);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+.sidebar-link.locked {
+  opacity: 0.55;
+}
+.sidebar-link.locked:hover {
+  opacity: 0.8;
+}
+
+/* ─── Plan badge ─── */
+.plan-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.plan-badge-free     { background: rgba(138,155,181,0.2); color: var(--muted); }
+.plan-badge-pro      { background: rgba(6,182,212,0.2); color: var(--cyan); }
+.plan-badge-premium  { background: rgba(212,160,36,0.2); color: var(--amber); }
+.plan-badge-owner    { background: rgba(45,212,160,0.2); color: var(--green); }
+.plan-badge-expired  { background: rgba(251,113,133,0.2); color: var(--red); }
+
+/* ─── Upgrade prompt (shown when feature is locked) ─── */
+.upgrade-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 24px;
+  max-width: 480px;
+  margin: 40px auto;
+}
+.upgrade-prompt-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+.upgrade-prompt-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+.upgrade-prompt-desc {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+.upgrade-prompt-trial {
+  font-size: 13px;
+  color: var(--amber);
+  margin-bottom: 16px;
+}
+.upgrade-prompt-actions {
+  display: flex;
+  gap: 12px;
+}
+.upgrade-prompt-actions .btn {
+  padding: 10px 28px;
+  font-size: 14px;
+}
+
+/* ─── Pricing page enhancements ─── */
+.pricing-error {
+  max-width: 600px;
+  margin: 0 auto 16px;
+  padding: 10px 16px;
+  border-radius: 6px;
+  background: rgba(251,113,133,0.1);
+  border: 1px solid rgba(251,113,133,0.3);
+  color: var(--red);
+  font-size: 13px;
+  text-align: center;
+}
+.tier-card.tier-current {
+  border-color: var(--green);
+  box-shadow: 0 0 20px rgba(45,212,160,0.1);
+}
+.tier-ribbon-current {
+  background: var(--green) !important;
+}
+
+/* ─── Mobile adjustments for plan UI ─── */
+@media (max-width: 768px) {
+  .trial-banner {
+    font-size: 11px;
+    padding: 5px 10px;
+    gap: 8px;
+  }
+  .trial-banner-btn { font-size: 10px; padding: 2px 8px; }
+  .upgrade-prompt { padding: 40px 16px; margin: 20px auto; }
+  .upgrade-prompt-icon { font-size: 36px; }
+  .upgrade-prompt-title { font-size: 18px; }
+  .upgrade-prompt-desc { font-size: 13px; }
+}

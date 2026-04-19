@@ -38,7 +38,7 @@ export default function Landing() {
             your research time on the stocks that matter.
           </p>
           <div className="hero-ctas">
-            <Link to="/signup" className="btn btn-primary btn-lg">Start Free →</Link>
+            <Link to="/signup" className="btn btn-primary btn-lg">Start 10-Day Free Trial →</Link>
             <Link to="/pricing" className="btn btn-ghost btn-lg">View Pricing</Link>
           </div>
           <p className="hero-disclaimer-tag">

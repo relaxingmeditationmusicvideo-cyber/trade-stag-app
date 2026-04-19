@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { BrowserRouter, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, useLocation, useParams, Navigate } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import Scanner from './pages/Scanner';
 import StockDetail from './pages/StockDetail';
@@ -14,8 +14,9 @@ import Privacy from './pages/Privacy';
 import PublicLayout from './components/PublicLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import DisclaimerModal from './components/DisclaimerModal';
-import { AuthProvider, useAuth } from './AuthContext';
+import { AuthProvider, useAuth, canAccessScanner, isTrialExpired, FREE_SCANNERS } from './AuthContext';
 import Logo from './components/Logo';
+import { ScannerGate, FeatureGate, TrialBanner, PlanBadge } from './components/PlanGate';
 
 // Empty string = relative URL → browser uses current domain automatically.
 // In dev: set REACT_APP_API_URL=http://localhost:8000 in .env
@@ -74,6 +75,15 @@ function Sidebar({ counts }) {
   const currentScanner = path.startsWith('/app/scanner/') ? path.split('/')[3] : null;
   const onSectors = path === '/app/sectors';
 
+  // Determine if a scanner is locked for this user
+  const isLocked = (itemId) => {
+    if (!user) return true;
+    if (user.is_owner) return false;
+    if (user.effective_plan === 'pro' || user.effective_plan === 'premium') return false;
+    if (user.effective_plan === 'free') return !FREE_SCANNERS.has(itemId);
+    return true; // expired
+  };
+
   return (
     <nav className="sidebar">
       <div className="sidebar-brand">
@@ -100,12 +110,14 @@ function Sidebar({ counts }) {
             const target = isSectors ? '/app/sectors' : `/app/scanner/${item.id}`;
             const isActive = isSectors ? onSectors : (currentScanner === item.id);
             const count = counts?.[item.id];
+            const locked = isSectors ? isLocked('sectors') : isLocked(item.id);
             return (
-              <Link key={item.id} to={target} className={`sidebar-link ${isActive ? 'active' : ''}`}>
+              <Link key={item.id} to={target} className={`sidebar-link ${isActive ? 'active' : ''} ${locked ? 'locked' : ''}`}>
                 <span className="si-icon">{item.icon}</span>
                 <span className="si-label">{item.label}</span>
-                {count != null && <span className="si-count">{count}</span>}
-                {item.badge && <span className={`si-badge ${item.badge.toLowerCase()}`}>{item.badge}</span>}
+                {locked && <span className="si-lock">PRO</span>}
+                {!locked && count != null && <span className="si-count">{count}</span>}
+                {!locked && item.badge && <span className={`si-badge ${item.badge.toLowerCase()}`}>{item.badge}</span>}
               </Link>
             );
           })}
@@ -117,7 +129,7 @@ function Sidebar({ counts }) {
         {user && (
           <>
             <div className="sidebar-user-name">{user.name || user.email}</div>
-            <div className="sidebar-user-plan">{user.plan || 'Free'} plan</div>
+            <div className="sidebar-user-plan"><PlanBadge /></div>
             <button className="sidebar-logout" onClick={logout}>Log out</button>
           </>
         )}
@@ -192,6 +204,14 @@ function MobileDrawer({ open, onClose, counts }) {
   const isHome = path === '/app' || path === '/app/dashboard' || path === '/app/';
   const { user, logout } = useAuth();
 
+  const isLocked = (itemId) => {
+    if (!user) return true;
+    if (user.is_owner) return false;
+    if (user.effective_plan === 'pro' || user.effective_plan === 'premium') return false;
+    if (user.effective_plan === 'free') return !FREE_SCANNERS.has(itemId);
+    return true;
+  };
+
   return (
     <>
       {open && <div className="mobile-drawer-backdrop" onClick={onClose} />}
@@ -213,12 +233,14 @@ function MobileDrawer({ open, onClose, counts }) {
                 const target = isSectors ? '/app/sectors' : `/app/scanner/${item.id}`;
                 const isActive = isSectors ? path === '/app/sectors' : (currentScanner === item.id);
                 const count = counts?.[item.id];
+                const locked = isSectors ? isLocked('sectors') : isLocked(item.id);
                 return (
-                  <Link key={item.id} to={target} className={`sidebar-link ${isActive ? 'active' : ''}`} onClick={onClose}>
+                  <Link key={item.id} to={target} className={`sidebar-link ${isActive ? 'active' : ''} ${locked ? 'locked' : ''}`} onClick={onClose}>
                     <span className="si-icon">{item.icon}</span>
                     <span className="si-label">{item.label}</span>
-                    {count != null && <span className="si-count">{count}</span>}
-                    {item.badge && <span className={`si-badge ${item.badge.toLowerCase()}`}>{item.badge}</span>}
+                    {locked && <span className="si-lock">PRO</span>}
+                    {!locked && count != null && <span className="si-count">{count}</span>}
+                    {!locked && item.badge && <span className={`si-badge ${item.badge.toLowerCase()}`}>{item.badge}</span>}
                   </Link>
                 );
               })}
@@ -228,6 +250,7 @@ function MobileDrawer({ open, onClose, counts }) {
         {user && (
           <div className="mobile-drawer-footer">
             <div style={{ fontSize: 12, color: 'var(--muted)' }}>{user.email}</div>
+            <PlanBadge />
             <button className="sidebar-logout" onClick={() => { logout(); onClose(); }}>Log out</button>
           </div>
         )}
@@ -237,12 +260,23 @@ function MobileDrawer({ open, onClose, counts }) {
 }
 
 // ─── Authenticated app shell ───
+// Wrapper that reads :scanner param and gates access
+function GatedScanner({ data, loading, api }) {
+  const { scanner } = useParams();
+  return (
+    <ScannerGate scannerId={scanner}>
+      <Scanner data={data} loading={loading} api={api} />
+    </ScannerGate>
+  );
+}
+
 function AppShell() {
   const { data, loading, error, reload } = useAllStocks(API);
   const [drawerOpen, setDrawerOpen] = useState(false);
   return (
     <div className="app-layout">
       <DisclaimerModal />
+      <TrialBanner />
       <div className="app-disclaimer-bar">
         Not investment advice. For educational & informational purposes only. Trade Stag is not SEBI-registered.
         <a href="/disclaimer" style={{ color: 'var(--amber)', marginLeft: 6 }}>Read disclaimer</a>
@@ -266,9 +300,17 @@ function AppShell() {
             <Routes>
               <Route path="/"                  element={<Dashboard data={data} loading={loading} api={API} />} />
               <Route path="/dashboard"         element={<Dashboard data={data} loading={loading} api={API} />} />
-              <Route path="/scanner/:scanner"  element={<Scanner data={data} loading={loading} api={API} />} />
-              <Route path="/stock/:symbol"     element={<StockDetail api={API} />} />
-              <Route path="/sectors"           element={<Sectors api={API} sectors={data.sectors} />} />
+              <Route path="/scanner/:scanner"  element={<GatedScanner data={data} loading={loading} api={API} />} />
+              <Route path="/stock/:symbol"     element={
+                <FeatureGate feature="stock_detail" requiredPlan="Pro">
+                  <StockDetail api={API} />
+                </FeatureGate>
+              } />
+              <Route path="/sectors"           element={
+                <FeatureGate feature="sectors" requiredPlan="Pro">
+                  <Sectors api={API} sectors={data.sectors} />
+                </FeatureGate>
+              } />
               <Route path="*"                  element={<Navigate to="/app" replace />} />
             </Routes>
           </div>
