@@ -1,0 +1,85 @@
+# Trade Stag — Automated Daily NSE 500 Scan
+# Runs every weekday after market close (6:30 PM IST = 1:00 PM UTC)
+# Scans all 500 stocks, commits scan_cache.json, pushes → Render auto-deploys
+
+name: Daily NSE 500 Scan
+
+on:
+  schedule:
+    # 1:00 PM UTC = 6:30 PM IST (after market close + buffer)
+    - cron: '0 13 * * 1-5'   # Mon-Fri only (market is closed on weekends)
+
+  # Allow manual trigger from GitHub Actions tab
+  workflow_dispatch:
+    inputs:
+      stock_limit:
+        description: 'Limit number of stocks (empty = full 500)'
+        required: false
+        default: ''
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Run NSE 500 scan
+        working-directory: backend
+        run: |
+          if [ -n "${{ github.event.inputs.stock_limit }}" ]; then
+            python run_scan.py --limit ${{ github.event.inputs.stock_limit }}
+          else
+            python run_scan.py
+          fi
+        env:
+          # Increase memory for full scan
+          PYTHONUNBUFFERED: '1'
+
+      - name: Check scan results
+        run: |
+          if [ ! -f backend/scan_cache.json ]; then
+            echo "ERROR: scan_cache.json not generated!"
+            exit 1
+          fi
+          SIZE=$(stat -f%z backend/scan_cache.json 2>/dev/null || stat -c%s backend/scan_cache.json)
+          SIZE_MB=$(echo "scale=1; $SIZE / 1048576" | bc)
+          echo "scan_cache.json size: ${SIZE_MB} MB"
+          # Verify it's valid JSON with stock data
+          python -c "
+          import json
+          with open('backend/scan_cache.json') as f:
+              data = json.load(f)
+          count = len(data.get('results', []))
+          print(f'Stocks in scan: {count}')
+          if count < 100:
+              print('WARNING: Low stock count!')
+          "
+
+      - name: Commit and push scan data
+        run: |
+          git config user.name "Trade Stag Bot"
+          git config user.email "bot@tradestag.com"
+          git add backend/scan_cache.json
+          # Only commit if there are changes
+          if git diff --cached --quiet; then
+            echo "No changes to scan_cache.json — skipping commit"
+          else
+            DATE=$(TZ='Asia/Kolkata' date +'%d %b %Y %I:%M %p IST')
+            git commit -m "Daily scan: ${DATE}"
+            git push
+            echo "Pushed scan data — Render will auto-deploy"
+          fi
