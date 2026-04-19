@@ -21,6 +21,14 @@ const SCANNERS = {
   fundamentals:  { name: 'Fundamental Score',    icon: '💎', filter: r => r.flag_fund_strong,                     sort: 'fund_score', dir: 'desc' },
   value_screen:  { name: 'Undervalued Growth',   icon: '💰', filter: r => r.flag_value_screen,                   sort: 'pe_ratio', dir: 'asc' },
   quality_screen:{ name: 'Quality & Blue Chips', icon: '🏆', filter: r => r.flag_quality_screen,                 sort: 'fund_score', dir: 'desc' },
+  // ── New screeners (v8) ──
+  low_reversal:  { name: '52W Low Reversal',    icon: '🔄', filter: r => r.flag_low_reversal,                    sort: 'pct_from_low', dir: 'asc' },
+  delivery_spike:{ name: 'Delivery Spike',      icon: '📦', filter: r => r.flag_delivery_spike,                  sort: 'delivery_pct', dir: 'desc' },
+  promoter_buy:  { name: 'Promoter Buying',     icon: '👔', filter: r => r.flag_promoter_buying,                 sort: 'score', dir: 'desc' },
+  bb_squeeze:    { name: 'Bollinger Squeeze',   icon: '🎯', filter: r => r.flag_bb_squeeze,                     sort: 'bb_width', dir: 'asc' },
+  ipo_base:      { name: 'IPO Base Setup',      icon: '🆕', filter: r => r.flag_ipo_base,                       sort: 'score', dir: 'desc' },
+  dryup_pattern: { name: 'Dry-Up + Pattern',    icon: '🧊', filter: r => r.flag_dryup_pattern,                  sort: 'score', dir: 'desc' },
+  near_52w_high: { name: '52W High Zone',       icon: '🏔️', filter: r => r.flag_52w_breakout_zone,              sort: 'pct_from_high', dir: 'desc' },
 };
 
 // ─── Filter chips definition ───
@@ -49,6 +57,13 @@ const CHIPS = [
   { key: 'vol_surge', label: '🔥 Vol Surge', test: r => r.flag_vol_surge },
   { key: 'pledge_danger', label: '🚨 Pledge Danger', test: r => r.flag_pledge_danger },
   { key: 'earnings_warn', label: '⚠️ Near Results', test: r => r.flag_earnings_warn },
+  { sep: true },
+  { key: 'low_reversal', label: '🔄 52W Low Rev', test: r => r.flag_low_reversal },
+  { key: 'delivery_spike', label: '📦 Del Spike', test: r => r.flag_delivery_spike },
+  { key: 'promoter_buy', label: '👔 Promoter Buy', test: r => r.flag_promoter_buying },
+  { key: 'bb_squeeze', label: '🎯 BB Squeeze', test: r => r.flag_bb_squeeze },
+  { key: 'ipo_base', label: '🆕 IPO Base', test: r => r.flag_ipo_base },
+  { key: 'dryup_pattern', label: '🧊 DryUp+Pattern', test: r => r.flag_dryup_pattern },
 ];
 
 // ─── Sort buttons ───

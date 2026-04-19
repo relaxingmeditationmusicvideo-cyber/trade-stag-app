@@ -85,14 +85,18 @@ function Dashboard({ data, loading }) {
       <h3 className="section-h">Popular Screeners</h3>
       <div className="scanner-grid">
         {[
-          { id: 'aplus',        name: '52 Week Leaders',      icon: '⭐', color: '#d4a024' },
-          { id: 'expert',       name: 'Multi-Factor Score',   icon: '🎯', color: '#22d3ee' },
-          { id: 'breakouts',    name: 'Breakout Scanner',     icon: '⚡', color: '#fbbf24' },
-          { id: 'volsurge',     name: 'Volume Breakout',      icon: '🔥', color: '#ef4444' },
-          { id: 'vcp',          name: 'VCP Formation',        icon: '🔷', color: '#06b6d4' },
-          { id: 'rs',           name: 'RS Momentum',          icon: '🚀', color: '#a78bfa' },
-          { id: 'stage2',       name: 'Stage 2 Uptrend',      icon: '✅', color: '#10b981' },
-          { id: 'ema',          name: 'Golden Crossover',     icon: '📈', color: '#84cc16' },
+          { id: 'aplus',         name: '52 Week Leaders',      icon: '⭐', color: '#d4a024' },
+          { id: 'expert',        name: 'Multi-Factor Score',   icon: '🎯', color: '#22d3ee' },
+          { id: 'breakouts',     name: 'Breakout Scanner',     icon: '⚡', color: '#fbbf24' },
+          { id: 'volsurge',      name: 'Volume Breakout',      icon: '🔥', color: '#ef4444' },
+          { id: 'vcp',           name: 'VCP Formation',        icon: '🔷', color: '#06b6d4' },
+          { id: 'bb_squeeze',    name: 'Bollinger Squeeze',    icon: '🎯', color: '#f472b6' },
+          { id: 'delivery_spike',name: 'Delivery Spike',       icon: '📦', color: '#34d399' },
+          { id: 'low_reversal',  name: '52W Low Reversal',     icon: '🔄', color: '#60a5fa' },
+          { id: 'rs',            name: 'RS Momentum',          icon: '🚀', color: '#a78bfa' },
+          { id: 'stage2',        name: 'Stage 2 Uptrend',      icon: '✅', color: '#10b981' },
+          { id: 'ema',           name: 'Golden Crossover',     icon: '📈', color: '#84cc16' },
+          { id: 'near_52w_high', name: '52W High Zone',        icon: '🏔️', color: '#fbbf24' },
         ].map(s => (
           <Link to={`/app/scanner/${s.id}`} className="scanner-card" key={s.id}>
             <div className="sc-icon" style={{ color: s.color }}>{s.icon}</div>

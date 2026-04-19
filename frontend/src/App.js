@@ -33,16 +33,28 @@ const SIDEBAR_GROUPS = [
       { id: 'breakouts',    label: 'Breakout Scanner',     icon: '⚡' },
       { id: 'volsurge',     label: 'Volume Breakout',      icon: '🔥' },
       { id: 'accumulation', label: 'Accumulation Zone',    icon: '🏦' },
+      { id: 'near_52w_high',label: '52W High Zone',        icon: '🏔️', badge: 'NEW' },
     ],
   },
   {
     label: 'Price & Pattern',
     items: [
-      { id: 'ema',          label: 'Golden Crossover',     icon: '📈', badge: 'NEW' },
+      { id: 'ema',          label: 'Golden Crossover',     icon: '📈' },
       { id: 'vcp',          label: 'VCP Formation',        icon: '🔷' },
+      { id: 'bb_squeeze',   label: 'Bollinger Squeeze',    icon: '🎯', badge: 'NEW' },
       { id: 'rs',           label: 'RS Momentum',          icon: '🚀' },
       { id: 'stage2',       label: 'Stage 2 Uptrend',      icon: '✅' },
       { id: 'price_action', label: 'Price Action',         icon: '📉' },
+      { id: 'low_reversal', label: '52W Low Reversal',     icon: '🔄', badge: 'NEW' },
+      { id: 'dryup_pattern',label: 'Dry-Up + Pattern',     icon: '🧊' },
+      { id: 'ipo_base',     label: 'IPO Base Setup',       icon: '🆕' },
+    ],
+  },
+  {
+    label: 'Volume & Delivery',
+    items: [
+      { id: 'delivery_spike',label: 'Delivery Spike',      icon: '📦', badge: 'NEW' },
+      { id: 'promoter_buy', label: 'Promoter Buying',      icon: '👔', badge: 'NEW' },
     ],
   },
   {

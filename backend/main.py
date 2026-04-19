@@ -487,6 +487,58 @@ def _normalize_stock(raw):
             or flag_qual_growth or flag_large_cap_q or flag_mid_cap_q
         )
 
+        # ── New screener flags (v8 — competitive paid features) ──
+        price = normalized["price"]
+        low_52w = normalized["low_52w"]
+        high_52w = normalized["high_52w"]
+        pct_from_high = normalized["pct_from_high"]
+        bb = normalized["bb_width"]
+
+        # 52-Week Low Reversal: within 15% of 52w low, positive 5D momentum, volume support
+        pct_from_low = ((price - low_52w) / low_52w * 100) if low_52w and low_52w > 0 else 999
+        normalized["pct_from_low"] = round(pct_from_low, 2)
+        normalized["flag_low_reversal"] = (
+            pct_from_low <= 15
+            and chg_5d > 0
+            and vol_ratio >= 1.0
+            and grade not in ("D", "F", "?")
+        )
+
+        # Delivery Spike: delivery% >= 60 AND vol_ratio >= 1.2 (institutional activity)
+        normalized["flag_delivery_spike"] = (
+            delivery_pct >= 60
+            and vol_ratio >= 1.2
+        )
+
+        # Promoter Buying: promoters increasing stake
+        normalized["flag_promoter_buying"] = bool(normalized.get("promoter_buying"))
+
+        # Bollinger Squeeze: BB width < 8 (very tight bands, expansion imminent)
+        normalized["flag_bb_squeeze"] = (
+            bb > 0 and bb < 8
+            and normalized["adx"] >= 15
+        )
+
+        # IPO Base Breakout: IPO base forming + positive momentum
+        normalized["flag_ipo_base"] = bool(normalized.get("is_ipo_base"))
+
+        # Volume Dry-Up + Pattern: vol dry-up coinciding with VCP, flat base, or NR7
+        normalized["flag_dryup_pattern"] = (
+            normalized["vol_dry_up"]
+            and (normalized["vcp_score"] >= 45 or normalized["flat_base"] or normalized["nr7"])
+        )
+
+        # Near 52W High with momentum: within 5% of 52w high, strong volume
+        normalized["flag_52w_breakout_zone"] = (
+            pct_from_high is not None
+            and abs(pct_from_high) <= 5
+            and vol_ratio >= 1.2
+            and chg_1d > 0
+        )
+
+        # RS Strong (70-90 percentile — broader than elite)
+        normalized["flag_rs_strong"] = rs_pct >= 70 and rs_pct < 90
+
         return normalized
     except Exception as exc:
         logger.warning(f"Normalize failed: {exc}")
@@ -939,6 +991,13 @@ def get_all_stocks():
             "fundamentals": sum(1 for r in results if r.get("flag_fund_strong")),
             "value_screen": sum(1 for r in results if r.get("flag_value_screen")),
             "quality_screen": sum(1 for r in results if r.get("flag_quality_screen")),
+            "low_reversal": sum(1 for r in results if r.get("flag_low_reversal")),
+            "delivery_spike": sum(1 for r in results if r.get("flag_delivery_spike")),
+            "promoter_buy": sum(1 for r in results if r.get("flag_promoter_buying")),
+            "bb_squeeze": sum(1 for r in results if r.get("flag_bb_squeeze")),
+            "ipo_base": sum(1 for r in results if r.get("flag_ipo_base")),
+            "dryup_pattern": sum(1 for r in results if r.get("flag_dryup_pattern")),
+            "near_52w_high": sum(1 for r in results if r.get("flag_52w_breakout_zone")),
             "sectors": len(_store.get("sectors") or []),
         }
 
