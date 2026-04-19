@@ -1340,6 +1340,218 @@ html, body, #root {
   .stat-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
+/* ─── App pages: mobile responsiveness ─── */
+@media (max-width: 768px) {
+  /* Prevent horizontal overflow on mobile */
+  .content {
+    padding: 12px;
+    overflow-x: hidden;
+  }
+  body {
+    overflow-x: hidden;
+  }
+  .app-layout {
+    overflow-x: hidden;
+  }
+
+  /* Topbar compact */
+  .topbar {
+    padding: 8px 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+    height: auto;
+    min-height: var(--topbar-height);
+  }
+  .topbar-title {
+    font-size: 12px;
+  }
+  .topbar-stats {
+    display: none;
+  }
+
+  /* Dashboard KPI cards */
+  .pulse-strip {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .kpi-card {
+    padding: 12px 14px;
+  }
+  .kpi-card .kpi-value {
+    font-size: 18px;
+  }
+  .kpi-card .kpi-label {
+    font-size: 10px;
+  }
+
+  /* Tables: make them scroll horizontally within container */
+  .data-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+    font-size: 12px;
+  }
+  .data-table thead th {
+    padding: 8px 10px;
+    font-size: 10px;
+  }
+  .data-table tbody td {
+    padding: 8px 10px;
+  }
+
+  /* Scanner filter chips: horizontal scroll */
+  .chip-bar, .filter-chips {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    padding-bottom: 6px;
+  }
+
+  /* Page titles */
+  .page-title {
+    font-size: 18px;
+  }
+  .page-subtitle {
+    font-size: 12px;
+    margin-bottom: 16px;
+  }
+
+  /* Grids go single column */
+  .grid-4, .grid-3, .grid-2 {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  /* Stock detail responsive */
+  .stock-header,
+  .stock-detail-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .stock-symbol-large {
+    font-size: 20px;
+  }
+  .stock-price-large {
+    font-size: 24px;
+  }
+  .trade-setup {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .trade-setup .ts-item {
+    padding: 8px;
+  }
+  .trade-setup .ts-item .ts-value {
+    font-size: 14px;
+  }
+
+  /* Disclaimer modal on mobile */
+  .modal-backdrop {
+    align-items: flex-start;
+    padding: 12px;
+  }
+  .modal-card {
+    padding: 20px 16px;
+    max-height: 85vh;
+  }
+  .modal-card h2 {
+    font-size: 17px;
+  }
+  .disclaimer-modal .disclaimer-body {
+    max-height: 45vh;
+  }
+  .modal-actions .btn {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+
+  /* Tabs: horizontal scroll on mobile */
+  .tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+  }
+  .tab {
+    flex-shrink: 0;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  /* Advance/Decline bar */
+  .adv-dec-bar {
+    flex-direction: row;
+    height: 28px;
+    border-radius: 6px;
+  }
+
+  /* Sector cards */
+  .sector-card {
+    padding: 12px;
+  }
+
+  /* App disclaimer bar compact */
+  .app-disclaimer-bar {
+    font-size: 9px;
+    padding: 3px 10px;
+  }
+
+  /* Scanner cards on dashboard */
+  .scanner-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  /* Filter/Sort bar: horizontal scroll on mobile */
+  .sort-bar, .filter-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+  }
+  .sort-btn, .filter-btn {
+    flex-shrink: 0;
+    font-size: 10px;
+    padding: 5px 10px;
+  }
+}
+
+/* ─── App pages: small phones ─── */
+@media (max-width: 480px) {
+  .content {
+    padding: 8px;
+  }
+  .topbar {
+    padding: 6px 8px;
+  }
+  .topbar-title {
+    font-size: 11px;
+  }
+  .pulse-strip, .stat-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .kpi-card .kpi-value {
+    font-size: 16px;
+  }
+  .scanner-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .scanner-card {
+    padding: 10px;
+    gap: 6px;
+  }
+  .page-title {
+    font-size: 16px;
+  }
+}
+
 /* ══════════════════════════════════════════════════════
    PUBLIC / LANDING PAGE STYLES
    ══════════════════════════════════════════════════════ */
@@ -1758,7 +1970,8 @@ html, body, #root {
 }
 
 /* ─── Disclaimer Modal ─── */
-.modal-overlay {
+.modal-overlay,
+.modal-backdrop {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0,0,0,0.7);
@@ -1766,6 +1979,8 @@ html, body, #root {
   align-items: center;
   justify-content: center;
   z-index: 9999;
+  padding: 16px;
+  overflow-y: auto;
 }
 .modal-card {
   background: var(--bg2);
@@ -1773,7 +1988,36 @@ html, body, #root {
   border-radius: 14px;
   padding: 32px;
   max-width: 500px;
-  width: 90%;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.disclaimer-modal .disclaimer-body {
+  max-height: 55vh;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+.disclaimer-modal .disclaimer-body ul {
+  padding-left: 20px;
+  margin: 8px 0 12px;
+}
+.disclaimer-modal .disclaimer-body li {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 4px;
+}
+.disclaimer-modal .disclaimer-small {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.disclaimer-modal .disclaimer-small a {
+  color: var(--accent);
+}
+.modal-actions {
+  padding-top: 12px;
+  flex-shrink: 0;
 }
 .modal-card h2 {
   font-size: 20px;
@@ -1784,7 +2028,7 @@ html, body, #root {
   font-size: 13px;
   color: var(--muted);
   line-height: 1.7;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 /* ─── Loading / Empty States ─── */
@@ -2018,6 +2262,37 @@ html, body, #root {
   color: var(--muted);
   opacity: 0.5;
 }
+/* Auth acknowledgment checkbox */
+.auth-ack {
+  display: flex !important;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 12px !important;
+  color: var(--muted) !important;
+  line-height: 1.5;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: rgba(212,160,36,0.05);
+  border: 1px solid rgba(212,160,36,0.15);
+  border-radius: 8px;
+}
+.auth-ack input[type="checkbox"] {
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px;
+  margin: 0 !important;
+  flex-shrink: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.auth-ack span {
+  font-size: 12px;
+  line-height: 1.5;
+}
+.auth-ack a {
+  color: var(--accent);
+}
+
 .auth-error {
   background: rgba(251,113,133,0.1);
   border: 1px solid rgba(251,113,133,0.2);
