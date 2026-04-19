@@ -86,7 +86,7 @@ function StockDetail({ api }) {
             {stock.name} — {stock.sector} — {stock.stage}
           </div>
         </div>
-        <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
+        <div className="stock-price-section">
           <div className="stock-price-large">{formatNum(stock.price)}</div>
           <div className={stock.chg_1d >= 0 ? 'up' : 'down'} style={{ fontSize: 16 }}>
             {formatPct(stock.chg_1d)} today
@@ -232,8 +232,8 @@ function StockDetail({ api }) {
       {tab === 'expert' && (
         <div className="card">
           <div className="card-title">13-Point Expert Decision Checklist</div>
-          <div style={{ marginBottom: 16, padding: '12px 16px', background: 'var(--bg4)', borderRadius: 8 }}>
-            <div className="flex items-center justify-between">
+          <div className="expert-summary-box">
+            <div className="expert-summary-row">
               <div>
                 <span className="font-bold" style={{
                   color: stock.expert_yes >= 10 ? 'var(--green)' : stock.expert_yes >= 7 ? 'var(--cyan)' : 'var(--red)',
@@ -241,7 +241,7 @@ function StockDetail({ api }) {
                 }}>
                   {stock.expert_yes}/13 YES
                 </span>
-                <span className="text-muted" style={{ marginLeft: 12 }}>
+                <span className="text-muted expert-match-text">
                   {stock.expert_yes >= 10 ? 'STRONG MATCH — Most criteria met' :
                    stock.expert_yes >= 7 ? 'MODERATE MATCH — Above average criteria' :
                    'WEAK MATCH — Few criteria met'}
@@ -451,7 +451,7 @@ function StockDetail({ api }) {
               return (
                 <div key={key} className="flex items-center gap-2" style={{ fontSize: 13 }}>
                   <span style={{ width: 24 }}>{meta.icon}</span>
-                  <span className="text-muted" style={{ width: 140, flexShrink: 0 }}>{meta.label}</span>
+                  <span className="text-muted breakdown-label">{meta.label}</span>
                   <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8 }}>
                     <div className="score-bar" style={{ flex: 1 }}>
                       <div className="fill" style={{
