@@ -304,7 +304,7 @@ export default function Scanner({ data, loading }) {
           </thead>
           <tbody>
             {filtered.slice(0, 200).map((row, i) => (
-              <StockRow key={row.symbol + i} row={row} idx={i} onClick={() => navigate(`/stock/${row.symbol}`)} />
+              <StockRow key={row.symbol + i} row={row} idx={i} onClick={() => navigate(`/app/stock/${row.symbol}`)} />
             ))}
           </tbody>
         </table>

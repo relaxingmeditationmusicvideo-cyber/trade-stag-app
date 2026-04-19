@@ -1,0 +1,32 @@
+{
+  "short_name": "TradeStag",
+  "name": "Trade Stag — NSE 500 Scanner",
+  "description": "Technical & fundamental screening tool for the NSE 500 universe. Patterns, momentum, delivery, and multi-factor scoring.",
+  "start_url": "/app",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#0a0c10",
+  "background_color": "#0a0c10",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "business"],
+  "lang": "en-IN"
+}

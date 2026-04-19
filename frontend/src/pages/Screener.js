@@ -139,7 +139,7 @@ function Screener({ api }) {
               </thead>
               <tbody>
                 {filtered.map(stock => (
-                  <tr key={stock.symbol} onClick={() => navigate(`/stock/${stock.symbol}`)} style={{ cursor: 'pointer' }}>
+                  <tr key={stock.symbol} onClick={() => navigate(`/app/stock/${stock.symbol}`)} style={{ cursor: 'pointer' }}>
                     <td>
                       <div style={{ fontWeight: 700 }}>{stock.symbol}</div>
                       <div className="text-xs text-muted">{stock.name}</div>

@@ -69,7 +69,7 @@ function TopTrades({ api }) {
               key={trade.symbol}
               className="card"
               style={{ cursor: 'pointer', transition: 'border-color 0.15s' }}
-              onClick={() => navigate(`/stock/${trade.symbol}`)}
+              onClick={() => navigate(`/app/stock/${trade.symbol}`)}
               onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--cyan)'}
               onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
             >

@@ -184,9 +184,62 @@ function useAllStocks(api) {
   return { data, loading, error, reload: load };
 }
 
+// ─── Mobile drawer menu ───
+function MobileDrawer({ open, onClose, counts }) {
+  const location = useLocation();
+  const path = location.pathname;
+  const currentScanner = path.startsWith('/app/scanner/') ? path.split('/')[3] : null;
+  const isHome = path === '/app' || path === '/app/dashboard' || path === '/app/';
+  const { user, logout } = useAuth();
+
+  return (
+    <>
+      {open && <div className="mobile-drawer-backdrop" onClick={onClose} />}
+      <div className={`mobile-drawer ${open ? 'open' : ''}`}>
+        <div className="mobile-drawer-header">
+          <Logo size={22} variant="full" />
+          <button className="mobile-drawer-close" onClick={onClose}>✕</button>
+        </div>
+        <div className="mobile-drawer-scroll">
+          <Link to="/app" className={`sidebar-link ${isHome ? 'active' : ''}`} onClick={onClose}>
+            <span className="si-icon">🏠</span>
+            <span className="si-label">Dashboard</span>
+          </Link>
+          {SIDEBAR_GROUPS.map(group => (
+            <div key={group.label} className="mobile-drawer-group">
+              <div className="sidebar-section-label">{group.label}</div>
+              {group.items.map(item => {
+                const isSectors = item.id === 'sectors';
+                const target = isSectors ? '/app/sectors' : `/app/scanner/${item.id}`;
+                const isActive = isSectors ? path === '/app/sectors' : (currentScanner === item.id);
+                const count = counts?.[item.id];
+                return (
+                  <Link key={item.id} to={target} className={`sidebar-link ${isActive ? 'active' : ''}`} onClick={onClose}>
+                    <span className="si-icon">{item.icon}</span>
+                    <span className="si-label">{item.label}</span>
+                    {count != null && <span className="si-count">{count}</span>}
+                    {item.badge && <span className={`si-badge ${item.badge.toLowerCase()}`}>{item.badge}</span>}
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+        {user && (
+          <div className="mobile-drawer-footer">
+            <div style={{ fontSize: 12, color: 'var(--muted)' }}>{user.email}</div>
+            <button className="sidebar-logout" onClick={() => { logout(); onClose(); }}>Log out</button>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
 // ─── Authenticated app shell ───
 function AppShell() {
   const { data, loading, error, reload } = useAllStocks(API);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   return (
     <div className="app-layout">
       <DisclaimerModal />
@@ -196,8 +249,10 @@ function AppShell() {
       </div>
       <div className="main-container">
         <Sidebar counts={data.counts} />
+        <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} counts={data.counts} />
         <main className="content">
           <div className="topbar">
+            <button className="mobile-menu-btn" onClick={() => setDrawerOpen(true)}>☰</button>
             <div className="topbar-title">
               <span className="topbar-breadcrumb">Trade Stag</span>
               <span className="topbar-sep">›</span>

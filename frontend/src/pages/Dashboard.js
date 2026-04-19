@@ -129,7 +129,7 @@ function Dashboard({ data, loading }) {
       <h3 className="section-h">Top 10 by Score</h3>
       <div className="top10-list">
         {[...stocks].sort((a, b) => b.score - a.score).slice(0, 10).map((s, i) => (
-          <Link to={`/stock/${s.symbol}`} key={s.symbol} className="top10-row">
+          <Link to={`/app/stock/${s.symbol}`} key={s.symbol} className="top10-row">
             <span className="top10-rank">#{i + 1}</span>
             <span className="grade-badge" style={{ background: gradeBg(s.grade) }}>{s.grade}</span>
             <span className="top10-sym"><strong>{s.symbol}</strong></span>
