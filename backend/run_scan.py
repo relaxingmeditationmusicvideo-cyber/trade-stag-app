@@ -147,6 +147,13 @@ counts = {
     "fundamentals": sum(1 for r in normalized_results if r.get("flag_fund_strong")),
     "value_screen": sum(1 for r in normalized_results if r.get("flag_value_screen")),
     "quality_screen": sum(1 for r in normalized_results if r.get("flag_quality_screen")),
+    "low_reversal": sum(1 for r in normalized_results if r.get("flag_low_reversal")),
+    "delivery_spike": sum(1 for r in normalized_results if r.get("flag_delivery_spike")),
+    "promoter_buy": sum(1 for r in normalized_results if r.get("flag_promoter_buying")),
+    "bb_squeeze": sum(1 for r in normalized_results if r.get("flag_bb_squeeze")),
+    "ipo_base": sum(1 for r in normalized_results if r.get("flag_ipo_base")),
+    "dryup_pattern": sum(1 for r in normalized_results if r.get("flag_dryup_pattern")),
+    "near_52w_high": sum(1 for r in normalized_results if r.get("flag_52w_breakout_zone")),
 }
 
 print(f"\n{'=' * 65}")

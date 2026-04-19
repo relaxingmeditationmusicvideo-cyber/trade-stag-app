@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 const FEATURES = [
-  { icon: '📊', title: '22+ Screeners',
+  { icon: '📊', title: '20+ Screeners',
     desc: 'Technical, momentum, delivery, and fundamental screens built on the full NSE 500 universe. Updated after every market close.' },
   { icon: '🎯', title: 'Multi-Factor Scoring',
     desc: 'Every stock is scored on 10+ dimensions — trend, momentum, breadth, relative strength, fundamentals, accumulation — with transparent breakdowns.' },

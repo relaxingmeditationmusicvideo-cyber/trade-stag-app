@@ -26,7 +26,6 @@ const SCANNERS = {
   delivery_spike:{ name: 'Delivery Spike',      icon: '📦', filter: r => r.flag_delivery_spike,                  sort: 'delivery_pct', dir: 'desc' },
   promoter_buy:  { name: 'Promoter Buying',     icon: '👔', filter: r => r.flag_promoter_buying,                 sort: 'score', dir: 'desc' },
   bb_squeeze:    { name: 'Bollinger Squeeze',   icon: '🎯', filter: r => r.flag_bb_squeeze,                     sort: 'bb_width', dir: 'asc' },
-  ipo_base:      { name: 'IPO Base Setup',      icon: '🆕', filter: r => r.flag_ipo_base,                       sort: 'score', dir: 'desc' },
   dryup_pattern: { name: 'Dry-Up + Pattern',    icon: '🧊', filter: r => r.flag_dryup_pattern,                  sort: 'score', dir: 'desc' },
   near_52w_high: { name: '52W High Zone',       icon: '🏔️', filter: r => r.flag_52w_breakout_zone,              sort: 'pct_from_high', dir: 'desc' },
 };
@@ -62,7 +61,6 @@ const CHIPS = [
   { key: 'delivery_spike', label: '📦 Del Spike', test: r => r.flag_delivery_spike },
   { key: 'promoter_buy', label: '👔 Promoter Buy', test: r => r.flag_promoter_buying },
   { key: 'bb_squeeze', label: '🎯 BB Squeeze', test: r => r.flag_bb_squeeze },
-  { key: 'ipo_base', label: '🆕 IPO Base', test: r => r.flag_ipo_base },
   { key: 'dryup_pattern', label: '🧊 DryUp+Pattern', test: r => r.flag_dryup_pattern },
 ];
 

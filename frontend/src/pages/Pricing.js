@@ -35,7 +35,7 @@ const TIERS = [
     tagline: 'Full screening tools for active researchers',
     features: [
       'Everything in Free',
-      'All 22+ screening tools',
+      'All 20+ screening tools',
       'Full stock data cards',
       'Pattern detection (VCP, Breakout, NR7…)',
       'Sector strength analytics',

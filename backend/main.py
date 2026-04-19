@@ -519,8 +519,10 @@ def _normalize_stock(raw):
             and normalized["adx"] >= 15
         )
 
-        # IPO Base Breakout: IPO base forming + positive momentum
-        normalized["flag_ipo_base"] = bool(normalized.get("is_ipo_base"))
+        # IPO Base Breakout: disabled — detect_ipo_base relies on len(df)
+        # which only reflects fetched history (~250-300 rows), not actual
+        # listing age.  Until we add a real listing-date lookup, keep False.
+        normalized["flag_ipo_base"] = False
 
         # Volume Dry-Up + Pattern: vol dry-up coinciding with VCP, flat base, or NR7
         normalized["flag_dryup_pattern"] = (

@@ -47,14 +47,7 @@ const SIDEBAR_GROUPS = [
       { id: 'price_action', label: 'Price Action',         icon: '📉' },
       { id: 'low_reversal', label: '52W Low Reversal',     icon: '🔄', badge: 'NEW' },
       { id: 'dryup_pattern',label: 'Dry-Up + Pattern',     icon: '🧊' },
-      { id: 'ipo_base',     label: 'IPO Base Setup',       icon: '🆕' },
-    ],
-  },
-  {
-    label: 'Volume & Delivery',
-    items: [
       { id: 'delivery_spike',label: 'Delivery Spike',      icon: '📦', badge: 'NEW' },
-      { id: 'promoter_buy', label: 'Promoter Buying',      icon: '👔', badge: 'NEW' },
     ],
   },
   {
