@@ -110,8 +110,10 @@ def init_db():
         # ── Migration: add new subscription columns if missing ──
         existing_cols = {row[1] for row in conn.execute("PRAGMA table_info(users)").fetchall()}
 
+        # NOTE: SQLite ALTER TABLE only allows constant defaults, not expressions
+        # like datetime('now'). So we add columns with no default, then backfill.
         migrations = {
-            "trial_start": "TEXT DEFAULT (datetime('now'))",
+            "trial_start": "TEXT",
             "plan_expires": "TEXT",
             "razorpay_sub_id": "TEXT",
             "razorpay_customer_id": "TEXT",
