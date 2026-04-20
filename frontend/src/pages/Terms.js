@@ -58,14 +58,21 @@ export default function Terms() {
       <section>
         <h2>8. Governing law</h2>
         <p>These terms are governed by the laws of India. Any disputes shall be
-        subject to the exclusive jurisdiction of the courts in your selected
-        jurisdiction (update before launch).</p>
+        subject to the exclusive jurisdiction of the courts in New Delhi, India.</p>
       </section>
 
       <section>
         <h2>9. Changes</h2>
         <p>We may update these terms from time to time. Material changes will be
         notified via email or prominent notice on the platform.</p>
+      </section>
+
+      <section>
+        <h2>10. Grievance Redressal</h2>
+        <p>If you have any grievances or complaints regarding the service, you may
+        contact our Grievance Officer at <a href="mailto:support@tradestag.com">support@tradestag.com</a>.
+        We will acknowledge your complaint within 48 hours and endeavour to resolve
+        it within 30 days of receipt.</p>
       </section>
     </div>
   );

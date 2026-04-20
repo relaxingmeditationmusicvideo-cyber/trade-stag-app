@@ -6,14 +6,12 @@ function TopTrades({ api }) {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [capital, setCapital] = useState(500000);
-
   useEffect(() => {
-    fetch(`${api}/api/top-trades?capital=${capital}`)
+    fetch(`${api}/api/top-trades`)
       .then(r => r.json())
       .then(d => { setData(d); setLoading(false); })
       .catch(() => setLoading(false));
-  }, [api, capital]);
+  }, [api]);
 
   if (loading) return <div className="loading-spinner">Loading top scored stocks...</div>;
 
@@ -41,27 +39,15 @@ function TopTrades({ api }) {
         making any investment decision.
       </div>
 
-      {/* Capital Input */}
-      <div className="filter-bar mb-6">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted">Hypothetical Capital:</span>
-          <input
-            type="number"
-            value={capital}
-            onChange={e => setCapital(Number(e.target.value))}
-            style={{ width: 160 }}
-          />
-          <span className="text-sm text-muted">Illustrative risk: {data?.risk_pct}% per position</span>
-        </div>
-      </div>
-
       {/* Stock Cards */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {trades.map((trade, idx) => {
           const ts = trade.trade_setup || {};
           /* Map advisory language to neutral screening terms */
           const decisionLabel = (trade.expert_decision || '')
-            .replace('CONVICTION', 'Strong Match')
+            .replace('CONVICTION', 'High Score')
+            .replace('TRADE', 'Score Match')
+            .replace('SKIP', 'Low Score')
             .replace('BUY', 'Bullish Pattern')
             .replace('SELL', 'Bearish Pattern');
           return (
@@ -95,7 +81,7 @@ function TopTrades({ api }) {
               </div>
 
               {/* Technical data grid — illustrative levels */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 8 }}>
                 <div style={{ textAlign: 'center', padding: '8px 4px', background: 'var(--bg4)', borderRadius: 6 }}>
                   <div className="text-xs text-muted">Score</div>
                   <div className="font-bold" style={{ color: getScoreColor(trade.score) }}>{trade.score}</div>
@@ -117,18 +103,11 @@ function TopTrades({ api }) {
                   <div className="font-bold text-green">{formatNum(ts.target1)}</div>
                 </div>
                 <div style={{ textAlign: 'center', padding: '8px 4px', background: 'var(--bg4)', borderRadius: 6 }}>
-                  <div className="text-xs text-muted">Lot Size*</div>
-                  <div className="font-bold">{trade.position_qty}</div>
-                </div>
-                <div style={{ textAlign: 'center', padding: '8px 4px', background: 'var(--bg4)', borderRadius: 6 }}>
-                  <div className="text-xs text-muted">R:R Ratio</div>
+                  <div className="text-xs text-muted">Range Ratio</div>
                   <div className="font-bold" style={{ color: ts.rr_ratio >= 2 ? 'var(--green)' : 'var(--amber)' }}>
                     1:{ts.rr_ratio?.toFixed(1)}
                   </div>
                 </div>
-              </div>
-              <div style={{ marginTop: 4, fontSize: 9, color: '#4a5568' }}>
-                * Lot Size is a hypothetical illustration based on entered capital and ATR-based risk. Not a recommendation.
               </div>
 
               {/* Signals — neutral pattern language */}
@@ -137,8 +116,8 @@ function TopTrades({ api }) {
                   /* Rewrite BUY/Sell to neutral pattern detection language */
                   const cleanSig = sig
                     .replace(/[🔥🟢✅📈📋🚨💀🌟🕯📶🎯⚡⚠️]/g, '')
-                    .replace(/\bBUY\b/gi, 'Bullish Signal')
-                    .replace(/\bSell\b/gi, 'Bearish Signal')
+                    .replace(/\bBUY\b/gi, 'Bullish Pattern')
+                    .replace(/\bSell\b/gi, 'Bearish Pattern')
                     .trim();
                   const cls = cleanSig.includes('Bullish') || cleanSig.includes('Breakout') ? 'bullish' :
                               cleanSig.includes('Bearish') || cleanSig.includes('Death') ? 'bearish' : '';

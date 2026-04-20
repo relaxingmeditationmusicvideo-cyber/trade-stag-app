@@ -193,7 +193,8 @@ function Screener({ api }) {
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 2, maxWidth: 200 }}>
                         {(stock.active_signals || []).slice(0, 3).map((sig, i) => {
                           const clean = sig.replace(/[🔥🟢✅📈📋🚨💀🌟🕯📶🎯⚡⚠️]/g, '')
-                            .replace(/\bBUY\b/gi, 'Bullish Signal').replace(/\bSell\b/gi, 'Bearish Signal').trim();
+                            .replace('CONVICTION', 'High Score').replace('TRADE', 'Score Match').replace('SKIP', 'Low Score')
+                            .replace(/\bBUY\b/gi, 'Bullish Pattern').replace(/\bSell\b/gi, 'Bearish Pattern').trim();
                           return (
                             <span key={i} className={`signal-tag ${
                               clean.includes('Bullish') || clean.includes('Cross') || clean.includes('Breakout') ? 'bullish' :

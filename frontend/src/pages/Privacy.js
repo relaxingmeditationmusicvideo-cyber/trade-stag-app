@@ -37,7 +37,7 @@ export default function Privacy() {
       <section>
         <h2>5. Your rights</h2>
         <p>You may access, correct, or delete your personal data by emailing
-        <em> support@tradestag.in</em>. You may close your account at any time.</p>
+        <em> support@tradestag.com</em>. You may close your account at any time.</p>
       </section>
 
       <section>
@@ -56,7 +56,7 @@ export default function Privacy() {
 
       <section>
         <h2>8. Contact</h2>
-        <p>Privacy questions: <em>support@tradestag.in</em> (update before launch).</p>
+        <p>Privacy questions: <a href="mailto:support@tradestag.com">support@tradestag.com</a></p>
       </section>
     </div>
   );

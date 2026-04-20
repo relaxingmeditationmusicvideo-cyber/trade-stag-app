@@ -153,11 +153,10 @@ function StockRow({ row, idx, onClick }) {
           </>
         ) : '—'}
       </td>
-      <td className="qty-cell">{ts.qty || '—'}</td>
       <td className="signals-cell">
         {(row.active_signals || []).slice(0, 5).map((s, i) => (
           <span key={i} className={`signal-tag ${s.includes('Elite') || s.includes('Strong Match') ? 'signal-elite' : ''}`}>
-            {s.replace('CONVICTION', 'Strong Match').replace(/\bBUY\b/gi, 'Bullish Signal').replace(/\bSell\b/gi, 'Bearish Signal')}
+            {s.replace('CONVICTION', 'High Score').replace('TRADE', 'Score Match').replace('SKIP', 'Low Score').replace(/\bBUY\b/gi, 'Bullish Pattern').replace(/\bSell\b/gi, 'Bearish Pattern')}
           </span>
         ))}
       </td>
@@ -299,7 +298,7 @@ export default function Scanner({ data, loading }) {
               <th>RSI</th><th>ADX</th><th>BB%</th><th>RS%ile</th>
               <th>Vol Ratio</th><th>Delivery%</th><th>52W High%</th>
               <th>Stage</th><th>Fund</th><th>Pledge%</th><th>Sector</th>
-              <th>Support / Risk / Res</th><th>Lot*</th><th>Signals</th>
+              <th>Support / Risk / Res</th><th>Signals</th>
             </tr>
           </thead>
           <tbody>
