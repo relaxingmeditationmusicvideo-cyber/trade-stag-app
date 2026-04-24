@@ -28,6 +28,7 @@ const SCANNERS = {
   bb_squeeze:    { name: 'Bollinger Squeeze',   icon: '🎯', filter: r => r.flag_bb_squeeze,                     sort: 'bb_width', dir: 'asc' },
   dryup_pattern: { name: 'Dry-Up + Pattern',    icon: '🧊', filter: r => r.flag_dryup_pattern,                  sort: 'score', dir: 'desc' },
   near_52w_high: { name: '52W High Zone',       icon: '🏔️', filter: r => r.flag_52w_breakout_zone,              sort: 'pct_from_high', dir: 'desc' },
+  avwap_breakout:{ name: 'AVWAP Pre-Breakout', icon: '🔥', filter: r => r.flag_avwap_breakout,                 sort: 'avwap_score', dir: 'desc' },
 };
 
 // ─── Filter chips definition ───
@@ -288,7 +289,81 @@ export default function Scanner({ data, loading }) {
         ))}
       </div>
 
-      {/* Table */}
+      {/* AVWAP Card View or Standard Table */}
+      {scanner === 'avwap_breakout' ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '8px 0' }}>
+          {filtered.length === 0 && (
+            <div className="no-results">No AVWAP pre-breakout candidates found today. Check back after market close.</div>
+          )}
+          {filtered.slice(0, 20).map((row, idx) => {
+            const tag = row.avwap_tag || '';
+            return (
+              <div
+                key={row.symbol}
+                className="card"
+                style={{ cursor: 'pointer', transition: 'border-color 0.15s', borderLeft: tag.includes('Hidden') ? '3px solid var(--green)' : tag.includes('Smart') ? '3px solid var(--cyan)' : '3px solid var(--border)' }}
+                onClick={() => navigate(`/app/stock/${row.symbol}`)}
+                onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--cyan)'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-4">
+                    <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--muted)', width: 32 }}>#{idx + 1}</span>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span style={{ fontSize: 18, fontWeight: 700 }}>{row.symbol}</span>
+                        <span className={`grade ${gradeClass(row.grade)}`}>{row.grade}</span>
+                        {tag && <span className="signal-tag" style={{ background: tag.includes('Hidden') ? 'rgba(16,185,129,0.15)' : 'rgba(6,182,212,0.15)', color: tag.includes('Hidden') ? 'var(--green)' : 'var(--cyan)' }}>{tag}</span>}
+                      </div>
+                      <div className="text-xs text-muted">{row.name} — {row.sector}</div>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: 22, fontWeight: 700 }}>{formatNum(row.price)}</div>
+                    <div className={row.chg_1d >= 0 ? 'up' : 'down'}>{formatPct(row.chg_1d)}</div>
+                  </div>
+                </div>
+                {/* AVWAP Data Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 8 }}>
+                  <div style={{ textAlign: 'center', padding: '8px 4px', background: 'var(--bg4)', borderRadius: 6 }}>
+                    <div className="text-xs text-muted">AVWAP Score</div>
+                    <div className="font-bold" style={{ color: row.avwap_score >= 4 ? 'var(--green)' : 'var(--amber)' }}>{row.avwap_score}/5</div>
+                  </div>
+                  <div style={{ textAlign: 'center', padding: '8px 4px', background: 'var(--bg4)', borderRadius: 6 }}>
+                    <div className="text-xs text-muted">Dist to Breakout</div>
+                    <div className="font-bold text-cyan">{row.avwap_dist_to_breakout?.toFixed(1)}%</div>
+                  </div>
+                  <div style={{ textAlign: 'center', padding: '8px 4px', background: 'var(--bg4)', borderRadius: 6 }}>
+                    <div className="text-xs text-muted">Vol vs Avg</div>
+                    <div className="font-bold" style={{ color: row.avwap_vol_vs_avg >= 1.5 ? 'var(--green)' : 'var(--muted)' }}>{row.avwap_vol_vs_avg?.toFixed(1)}x</div>
+                  </div>
+                  <div style={{ textAlign: 'center', padding: '8px 4px', background: 'var(--bg4)', borderRadius: 6 }}>
+                    <div className="text-xs text-muted">AVWAP Status</div>
+                    <div className="font-bold" style={{ color: row.avwap_above ? 'var(--green)' : 'var(--red)' }}>{row.avwap_above ? 'Above' : 'Below'}</div>
+                  </div>
+                  <div style={{ textAlign: 'center', padding: '8px 4px', background: 'var(--bg4)', borderRadius: 6 }}>
+                    <div className="text-xs text-muted">Held Above</div>
+                    <div className="font-bold">{row.avwap_held_days}d</div>
+                  </div>
+                  <div style={{ textAlign: 'center', padding: '8px 4px', background: 'var(--bg4)', borderRadius: 6 }}>
+                    <div className="text-xs text-muted">Consolidation</div>
+                    <div className="font-bold" style={{ color: row.avwap_consolidation ? 'var(--green)' : 'var(--muted)' }}>{row.avwap_consolidation ? 'Tight' : 'Normal'}</div>
+                  </div>
+                </div>
+                {/* Smart Money & Signals */}
+                <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                  {row.avwap_smart_money && <span className="signal-tag bullish">Smart Money Active</span>}
+                  {row.avwap_vol_contraction && <span className="signal-tag">Vol Contraction</span>}
+                  {(row.active_signals || []).slice(0, 4).map((sig, i) => {
+                    const cleanSig = sig.replace(/[🔥🟢✅📈📋🚨💀🌟🕯📶🎯⚡⚠️]/g, '').replace('CONVICTION', 'High Score').replace('TRADE', 'Score Match').replace(/\bBUY\b/gi, 'Bullish Pattern').replace(/\bSell\b/gi, 'Bearish Pattern').trim();
+                    return <span key={i} className="signal-tag">{cleanSig}</span>;
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
       <div className="tbl-wrap">
         <table className="stock-table">
           <thead>
@@ -314,6 +389,7 @@ export default function Scanner({ data, loading }) {
           <div className="no-results">No stocks match these filters</div>
         )}
       </div>
+      )}
     </div>
   );
 }

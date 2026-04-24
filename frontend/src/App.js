@@ -11,6 +11,8 @@ import Pricing from './pages/Pricing';
 import Disclaimer from './pages/Disclaimer';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
+import AdminPanel from './pages/AdminPanel';
+import PendingApproval from './pages/PendingApproval';
 import PublicLayout from './components/PublicLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import DisclaimerModal from './components/DisclaimerModal';
@@ -24,6 +26,12 @@ const API = process.env.REACT_APP_API_URL || '';
 
 // ─── Sidebar groups — SEBI-neutral, StockMagnets-inspired labels ───
 const SIDEBAR_GROUPS = [
+  {
+    label: 'PRO Scanner',
+    items: [
+      { id: 'avwap_breakout', label: 'AVWAP Pre-Breakout', icon: '🔥', badge: 'PRO' },
+    ],
+  },
   {
     label: 'Momentum & Technical',
     items: [
@@ -123,6 +131,16 @@ function Sidebar({ counts }) {
           })}
         </div>
       ))}
+
+      {user?.is_owner && (
+        <div className="sidebar-section">
+          <div className="sidebar-section-label">Admin</div>
+          <Link to="/app/admin" className={`sidebar-link ${loc.pathname === '/app/admin' ? 'active' : ''}`}>
+            <span className="si-icon">🔧</span>
+            <span className="si-label">Admin Panel</span>
+          </Link>
+        </div>
+      )}
 
       <div style={{ flex: 1 }} />
       <div className="sidebar-section sidebar-user">
@@ -311,6 +329,7 @@ function AppShell() {
                   <Sectors api={API} sectors={data.sectors} />
                 </FeatureGate>
               } />
+              <Route path="/admin"             element={<AdminPanel api={API} />} />
               <Route path="*"                  element={<Navigate to="/app" replace />} />
             </Routes>
           </div>

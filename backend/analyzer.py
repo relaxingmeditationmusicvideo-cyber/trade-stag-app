@@ -1427,6 +1427,145 @@ class NSEAnalysisPipeline:
         self._fii_dii_data = {}
         self._pcr_data     = {}
 
+    # ── AVWAP Pre-Breakout Scanner Engine (v8.0) ─────────────────────────
+    @staticmethod
+    def _compute_avwap_scanner(daily_df, last, delivery_pct=None):
+        """
+        Full AVWAP Pre-Breakout scanner:
+          Step 1: Base candidate filter (uptrend + near breakout + vol spike + tight consolidation)
+          Step 2: Anchored VWAP from swing low
+          Step 3: Smart money filter (above AVWAP 3+ candles, near resistance, vol contraction)
+          Step 4: Score 0–5
+          Step 5: Tags
+        Returns dict of avwap_* fields to merge into the stock result.
+        """
+        import numpy as np
+
+        close = daily_df["Close"]
+        high  = daily_df["High"]
+        low   = daily_df["Low"]
+        vol   = daily_df["Volume"]
+        opn   = daily_df["Open"]
+        n     = len(daily_df)
+
+        defaults = {
+            "avwap_score": 0, "avwap_value": 0.0, "avwap_above": False,
+            "avwap_held_days": 0, "avwap_dist_to_breakout": 0.0,
+            "avwap_vol_vs_avg": 0.0, "avwap_consolidation": False,
+            "avwap_candidate": False, "avwap_smart_money": False,
+            "avwap_tag": "",
+        }
+        if n < 50:
+            return defaults
+
+        c  = float(close.iloc[-1])
+        h  = float(high.iloc[-1])
+        lo = float(low.iloc[-1])
+        v  = float(vol.iloc[-1])
+
+        # ── STEP 1: BASE SCANNER (Candidate Filter) ──────────────────
+        # SMA 20 and SMA 50
+        sma20 = float(close.tail(20).mean())
+        sma50 = float(close.tail(50).mean())
+
+        # 1a. Uptrend: Close > SMA20 AND Close > SMA50
+        uptrend = c > sma20 and c > sma50
+
+        # 1b. Near Breakout Zone: Close >= 95% of 20-day highest high
+        high_20d = float(high.tail(20).max())
+        near_breakout = c >= high_20d * 0.95 if high_20d > 0 else False
+
+        # 1c. Volume Spike: Volume > 1.5 * SMA(20, Volume)
+        vol_sma20 = float(vol.tail(20).mean())
+        vol_spike = v > 1.5 * vol_sma20 if vol_sma20 > 0 else False
+        vol_vs_avg = round(v / vol_sma20, 2) if vol_sma20 > 0 else 0
+
+        # 1d. Tight Consolidation: (High - Low) / Close < 0.03
+        range_pct = (h - lo) / c if c > 0 else 1
+        tight_consolidation = range_pct < 0.03
+
+        is_candidate = uptrend and near_breakout
+
+        # ── STEP 2: AVWAP CALCULATION ─────────────────────────────────
+        # Anchor at lowest low in last 30 sessions
+        lookback_avwap = min(30, n)
+        tail_low = low.tail(lookback_avwap)
+        anchor_idx = int(tail_low.values.argmin())
+        anchor_pos = n - lookback_avwap + anchor_idx  # absolute position in df
+
+        # Compute AVWAP from anchor to latest candle (vectorized)
+        typical_price = (high.iloc[anchor_pos:] + low.iloc[anchor_pos:] + close.iloc[anchor_pos:]) / 3.0
+        cum_tp_vol = (typical_price * vol.iloc[anchor_pos:]).cumsum()
+        cum_vol    = vol.iloc[anchor_pos:].cumsum()
+        avwap_series = cum_tp_vol / cum_vol.replace(0, np.nan)
+
+        avwap_value = round(float(avwap_series.iloc[-1]), 2) if not np.isnan(avwap_series.iloc[-1]) else 0
+        above_avwap = c > avwap_value if avwap_value > 0 else False
+
+        # ── STEP 3: SMART MONEY FILTER ────────────────────────────────
+        # 3a. Price held above AVWAP for at least 3 candles
+        held_days = 0
+        if avwap_value > 0 and len(avwap_series) >= 3:
+            for i in range(len(avwap_series) - 1, -1, -1):
+                av = float(avwap_series.iloc[i])
+                cl = float(close.iloc[anchor_pos + i])
+                if cl > av and not np.isnan(av):
+                    held_days += 1
+                else:
+                    break
+        avwap_held = held_days >= 3
+
+        # 3b. Distance from resistance (20-day high) < 5%
+        dist_to_breakout = round(((high_20d - c) / c) * 100, 2) if c > 0 else 99
+        near_resistance = dist_to_breakout < 5
+
+        # 3c. Volatility contraction (range tightening over last 5 candles)
+        if n >= 10:
+            recent_ranges = ((high.tail(5) - low.tail(5)) / close.tail(5)).values
+            prev_ranges   = ((high.iloc[-10:-5] - low.iloc[-10:-5]) / close.iloc[-10:-5]).values
+            avg_recent = float(np.mean(recent_ranges))
+            avg_prev   = float(np.mean(prev_ranges))
+            vol_contraction = avg_recent < avg_prev * 0.85  # 15%+ range contraction
+        else:
+            vol_contraction = False
+
+        smart_money = above_avwap and avwap_held and near_resistance
+
+        # ── STEP 4: SCORING (0–5) ────────────────────────────────────
+        score = 0
+        if c > sma20:            score += 1   # Close > SMA20
+        if c > sma50:            score += 1   # Close > SMA50
+        if vol_spike:            score += 1   # Volume spike present
+        if above_avwap:          score += 1   # Close > AVWAP
+        if tight_consolidation:  score += 1   # Tight consolidation
+
+        # ── STEP 5: TAG ──────────────────────────────────────────────
+        tag = ""
+        if score >= 4 and smart_money:
+            tag = "🔥 Hidden Breakout Candidate"
+        elif score >= 4:
+            tag = "⚡ Smart Money Active"
+        elif score >= 3 and above_avwap:
+            tag = "📊 AVWAP Setup Forming"
+
+        return {
+            "avwap_score": score,
+            "avwap_value": avwap_value,
+            "avwap_above": above_avwap,
+            "avwap_held_days": held_days,
+            "avwap_dist_to_breakout": dist_to_breakout,
+            "avwap_vol_vs_avg": vol_vs_avg,
+            "avwap_consolidation": tight_consolidation,
+            "avwap_vol_contraction": vol_contraction,
+            "avwap_candidate": is_candidate,
+            "avwap_smart_money": smart_money,
+            "avwap_tag": tag,
+            "avwap_sma20": round(sma20, 2),
+            "avwap_sma50": round(sma50, 2),
+            "avwap_high_20d": round(high_20d, 2),
+            "avwap_delivery_pct": delivery_pct,
+        }
+
     def analyze_one(self, symbol):
         try:
             raw = self.price_mgr.fetch_stock(symbol)
@@ -1901,6 +2040,23 @@ class NSEAnalysisPipeline:
 
             # ── Confidence % (v4.0) — for Top Trades ranking ──
             result["confidence_pct"] = StockScorer.compute_confidence_pct(result)
+
+            # ── AVWAP Pre-Breakout Scanner (v8.0) ──────────────────────────
+            try:
+                avwap_data = self._compute_avwap_scanner(daily, last, delivery_pct)
+                result.update(avwap_data)
+                if avwap_data.get("avwap_score", 0) >= 4:
+                    active_signals.insert(0, f"🔥AVWAP-PreBreakout({avwap_data['avwap_score']}/5)")
+                elif avwap_data.get("avwap_score", 0) >= 3:
+                    active_signals.append(f"⚡AVWAP-Setup({avwap_data['avwap_score']}/5)")
+            except Exception:
+                result.update({
+                    "avwap_score": 0, "avwap_value": 0, "avwap_above": False,
+                    "avwap_held_days": 0, "avwap_dist_to_breakout": 0,
+                    "avwap_vol_vs_avg": 0, "avwap_consolidation": False,
+                    "avwap_candidate": False, "avwap_smart_money": False,
+                    "avwap_tag": "",
+                })
 
             return result
 
@@ -7858,6 +8014,23 @@ class NSEAnalysisPipeline:
 
             # ── Confidence % (v4.0) — for Top Trades ranking ──
             result["confidence_pct"] = StockScorer.compute_confidence_pct(result)
+
+            # ── AVWAP Pre-Breakout Scanner (v8.0) ──────────────────────────
+            try:
+                avwap_data = self._compute_avwap_scanner(daily, last, delivery_pct)
+                result.update(avwap_data)
+                if avwap_data.get("avwap_score", 0) >= 4:
+                    active_signals.insert(0, f"🔥AVWAP-PreBreakout({avwap_data['avwap_score']}/5)")
+                elif avwap_data.get("avwap_score", 0) >= 3:
+                    active_signals.append(f"⚡AVWAP-Setup({avwap_data['avwap_score']}/5)")
+            except Exception:
+                result.update({
+                    "avwap_score": 0, "avwap_value": 0, "avwap_above": False,
+                    "avwap_held_days": 0, "avwap_dist_to_breakout": 0,
+                    "avwap_vol_vs_avg": 0, "avwap_consolidation": False,
+                    "avwap_candidate": False, "avwap_smart_money": False,
+                    "avwap_tag": "",
+                })
 
             return result
 

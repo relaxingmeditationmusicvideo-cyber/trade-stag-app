@@ -541,6 +541,26 @@ def _normalize_stock(raw):
         # RS Strong (70-90 percentile — broader than elite)
         normalized["flag_rs_strong"] = rs_pct >= 70 and rs_pct < 90
 
+        # ── AVWAP Pre-Breakout Scanner (v8.0) ──
+        normalized["avwap_score"]            = _i(raw.get("avwap_score"))
+        normalized["avwap_value"]            = _f(raw.get("avwap_value"))
+        normalized["avwap_above"]            = _b(raw.get("avwap_above"))
+        normalized["avwap_held_days"]        = _i(raw.get("avwap_held_days"))
+        normalized["avwap_dist_to_breakout"] = _f(raw.get("avwap_dist_to_breakout"))
+        normalized["avwap_vol_vs_avg"]       = _f(raw.get("avwap_vol_vs_avg"))
+        normalized["avwap_consolidation"]    = _b(raw.get("avwap_consolidation"))
+        normalized["avwap_vol_contraction"]  = _b(raw.get("avwap_vol_contraction"))
+        normalized["avwap_candidate"]        = _b(raw.get("avwap_candidate"))
+        normalized["avwap_smart_money"]      = _b(raw.get("avwap_smart_money"))
+        normalized["avwap_tag"]              = _s(raw.get("avwap_tag"), "")
+        normalized["avwap_sma20"]            = _f(raw.get("avwap_sma20"))
+        normalized["avwap_sma50"]            = _f(raw.get("avwap_sma50"))
+        normalized["avwap_high_20d"]         = _f(raw.get("avwap_high_20d"))
+        normalized["flag_avwap_breakout"]    = bool(
+            normalized["avwap_score"] >= 4
+            and normalized["avwap_candidate"]
+        )
+
         return normalized
     except Exception as exc:
         logger.warning(f"Normalize failed: {exc}")
@@ -1000,6 +1020,7 @@ def get_all_stocks():
             "ipo_base": sum(1 for r in results if r.get("flag_ipo_base")),
             "dryup_pattern": sum(1 for r in results if r.get("flag_dryup_pattern")),
             "near_52w_high": sum(1 for r in results if r.get("flag_52w_breakout_zone")),
+            "avwap_breakout": sum(1 for r in results if r.get("flag_avwap_breakout")),
             "sectors": len(_store.get("sectors") or []),
         }
 

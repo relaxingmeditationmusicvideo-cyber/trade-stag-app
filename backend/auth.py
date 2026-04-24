@@ -117,6 +117,7 @@ def init_db():
             "plan_expires": "TEXT",
             "razorpay_sub_id": "TEXT",
             "razorpay_customer_id": "TEXT",
+            "approved": "INTEGER DEFAULT 0",
         }
         for col, col_def in migrations.items():
             if col not in existing_cols:
@@ -125,6 +126,8 @@ def init_db():
 
         # Backfill trial_start for existing users who don't have it
         conn.execute("UPDATE users SET trial_start = created_at WHERE trial_start IS NULL")
+        # Auto-approve the owner
+        conn.execute("UPDATE users SET approved = 1 WHERE LOWER(email) = ?", (OWNER_EMAIL,))
         conn.commit()
 
         # ── Payments table ──
@@ -180,17 +183,20 @@ def _send_email_bg(subject: str, body_html: str, to_email: str = None):
 
 
 def notify_owner_signup(user_email: str, user_name: str):
-    """Notify owner when a new user signs up."""
+    """Notify owner when a new user signs up — includes approve link."""
     _send_email_bg(
-        subject=f"Trade Stag — New Signup: {user_email}",
+        subject=f"Trade Stag — New Signup (APPROVAL NEEDED): {user_email}",
         body_html=f"""
         <div style="font-family:sans-serif;max-width:500px;">
-            <h2 style="color:#059669;">New User Signup</h2>
+            <h2 style="color:#059669;">New User Signup — Approval Required</h2>
             <p><strong>Email:</strong> {user_email}</p>
             <p><strong>Name:</strong> {user_name or '(not provided)'}</p>
             <p><strong>Time:</strong> {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}</p>
-            <p><strong>Plan:</strong> Free (10-day trial started)</p>
+            <p><strong>Status:</strong> <span style="color:#f59e0b;font-weight:bold;">Pending Approval</span></p>
             <hr style="border:none;border-top:1px solid #333;" />
+            <p style="font-size:14px;">To approve this user, go to your
+            <a href="https://www.tradestag.com/app/admin" style="color:#06b6d4;">Admin Panel</a>
+            and click Approve.</p>
             <p style="color:#888;font-size:12px;">Trade Stag Notification System</p>
         </div>
         """,
@@ -338,54 +344,31 @@ def get_plan_status(user: dict) -> dict:
             "is_active": True,
         }
 
-    plan = user.get("plan") or "free"
-    plan_expires = user.get("plan_expires")
-    trial_start = user.get("trial_start") or user.get("created_at")
+    approved = bool(user.get("approved", 0))
 
-    # Check if paid plan is still active
-    if plan in ("pro", "premium") and plan_expires:
-        try:
-            exp_dt = datetime.fromisoformat(plan_expires.replace("Z", "+00:00")) if "T" in plan_expires else datetime.strptime(plan_expires, "%Y-%m-%d %H:%M:%S")
-            if datetime.utcnow() > exp_dt:
-                # Plan expired, revert to free
-                plan = "free"
-        except Exception:
-            pass
+    # If not approved by admin, user is in "pending" state — no access
+    if not approved:
+        return {
+            "plan": "free",
+            "effective_plan": "pending",
+            "is_owner": False,
+            "is_trial": False,
+            "trial_days_left": 0,
+            "trial_expired": False,
+            "is_active": False,
+            "approved": False,
+        }
 
-    # For free users, check trial
-    trial_expired = False
-    trial_days_left = 0
-    is_trial = (plan == "free")
-
-    if is_trial and trial_start:
-        try:
-            ts = datetime.fromisoformat(trial_start.replace("Z", "+00:00")) if "T" in trial_start else datetime.strptime(trial_start, "%Y-%m-%d %H:%M:%S")
-            elapsed = (datetime.utcnow() - ts).days
-            trial_days_left = max(0, TRIAL_DAYS - elapsed)
-            trial_expired = trial_days_left <= 0
-        except Exception:
-            trial_days_left = 0
-            trial_expired = True
-
-    # Determine effective plan
-    if plan in ("pro", "premium"):
-        effective = plan
-        active = True
-    elif is_trial and not trial_expired:
-        effective = "free"
-        active = True
-    else:
-        effective = "expired"
-        active = False
-
+    # Approved users get full premium access
     return {
-        "plan": plan,
-        "effective_plan": effective,
+        "plan": "premium",
+        "effective_plan": "premium",
         "is_owner": False,
-        "is_trial": is_trial,
-        "trial_days_left": trial_days_left,
-        "trial_expired": trial_expired,
-        "is_active": active,
+        "is_trial": False,
+        "trial_days_left": 999,
+        "trial_expired": False,
+        "is_active": True,
+        "approved": True,
     }
 
 
@@ -403,6 +386,7 @@ def _public_user(u: dict) -> dict:
         "trial_days_left": plan_status["trial_days_left"],
         "trial_expired": plan_status["trial_expired"],
         "is_active": plan_status["is_active"],
+        "approved": plan_status.get("approved", bool(u.get("approved", 0))),
         "plan_expires": u.get("plan_expires"),
         "created_at": u.get("created_at"),
     }
@@ -618,3 +602,89 @@ def verify_payment(body: VerifyPaymentBody, user: dict = Depends(get_current_use
 def logout():
     # JWT is stateless — client just drops the token.
     return {"ok": True}
+
+
+# ─── Admin endpoints (owner only) ──────────────────────────────────
+def _require_owner(user: dict):
+    """Raise 403 if the user is not the owner."""
+    if not is_owner(user.get("email", "")):
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+
+@router.get("/admin/users")
+def admin_list_users(user: dict = Depends(get_current_user)):
+    """List all users with approval status. Owner only."""
+    _require_owner(user)
+    conn = _get_db()
+    try:
+        rows = conn.execute(
+            "SELECT id, email, name, plan, approved, created_at, last_login_at, trial_start FROM users ORDER BY created_at DESC"
+        ).fetchall()
+        users = []
+        for r in rows:
+            u = dict(r)
+            u["approved"] = bool(u.get("approved", 0))
+            u["is_owner"] = is_owner(u["email"])
+            users.append(u)
+        return {"users": users, "total": len(users)}
+    finally:
+        conn.close()
+
+
+class ApproveBody(BaseModel):
+    user_id: int
+
+
+@router.post("/admin/approve")
+def admin_approve_user(body: ApproveBody, user: dict = Depends(get_current_user)):
+    """Approve a user — gives them full premium access."""
+    _require_owner(user)
+    conn = _get_db()
+    try:
+        target = conn.execute("SELECT * FROM users WHERE id = ?", (body.user_id,)).fetchone()
+        if not target:
+            raise HTTPException(status_code=404, detail="User not found")
+        conn.execute("UPDATE users SET approved = 1, plan = 'premium' WHERE id = ?", (body.user_id,))
+        conn.commit()
+        logger.info(f"Admin approved user: {dict(target)['email']}")
+
+        # Notify the approved user
+        target_dict = dict(target)
+        _send_email_bg(
+            subject="Trade Stag — Your Account Has Been Approved!",
+            body_html=f"""
+            <div style="font-family:sans-serif;max-width:500px;">
+                <h2 style="color:#059669;">Account Approved!</h2>
+                <p>Hi {target_dict.get('name') or 'there'},</p>
+                <p>Your Trade Stag account has been approved. You now have full access to all scanners and features.</p>
+                <p><a href="https://www.tradestag.com/login" style="color:#06b6d4;font-weight:bold;">Log in now →</a></p>
+                <hr style="border:none;border-top:1px solid #333;" />
+                <p style="color:#888;font-size:12px;">Trade Stag — Smart Screening for Indian Markets</p>
+            </div>
+            """,
+            to_email=target_dict["email"],
+        )
+
+        return {"ok": True, "message": f"User {target_dict['email']} approved"}
+    finally:
+        conn.close()
+
+
+@router.post("/admin/reject")
+def admin_reject_user(body: ApproveBody, user: dict = Depends(get_current_user)):
+    """Reject/revoke a user's access."""
+    _require_owner(user)
+    conn = _get_db()
+    try:
+        target = conn.execute("SELECT * FROM users WHERE id = ?", (body.user_id,)).fetchone()
+        if not target:
+            raise HTTPException(status_code=404, detail="User not found")
+        target_dict = dict(target)
+        if is_owner(target_dict["email"]):
+            raise HTTPException(status_code=400, detail="Cannot reject the owner account")
+        conn.execute("UPDATE users SET approved = 0, plan = 'free' WHERE id = ?", (body.user_id,))
+        conn.commit()
+        logger.info(f"Admin rejected user: {target_dict['email']}")
+        return {"ok": True, "message": f"User {target_dict['email']} access revoked"}
+    finally:
+        conn.close()

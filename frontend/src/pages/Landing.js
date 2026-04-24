@@ -38,8 +38,8 @@ export default function Landing() {
             your research time on the stocks that matter.
           </p>
           <div className="hero-ctas">
-            <Link to="/signup" className="btn btn-primary btn-lg">Start 10-Day Free Trial →</Link>
-            <Link to="/pricing" className="btn btn-ghost btn-lg">View Pricing</Link>
+            <Link to="/signup" className="btn btn-primary btn-lg">Sign Up for Access →</Link>
+            <Link to="/pricing" className="btn btn-ghost btn-lg">Learn More</Link>
           </div>
           <p className="hero-disclaimer-tag">
             * Educational & research tool only. Not investment advice. See{' '}
