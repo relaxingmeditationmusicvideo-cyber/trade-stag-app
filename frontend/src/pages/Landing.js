@@ -82,10 +82,27 @@ export default function Landing() {
       <section className="section cta-section">
         <div className="cta-box">
           <h2>Start screening the NSE 500 today</h2>
-          <p>Free tier includes daily scans and 3 screeners. No card required.</p>
-          <Link to="/signup" className="btn btn-primary btn-lg">Create Free Account</Link>
+          <p>Sign up and get approved for full access. No card required.</p>
+          <Link to="/signup" className="btn btn-primary btn-lg">Sign Up for Access →</Link>
         </div>
       </section>
+
+      <footer className="landing-footer">
+        <div className="footer-inner">
+          <div className="footer-brand">
+            <strong>Trade Stag</strong> — NSE 500 Screener & Analysis
+          </div>
+          <div className="footer-links">
+            <Link to="/disclaimer">Disclaimer</Link>
+            <Link to="/terms">Terms</Link>
+            <Link to="/privacy">Privacy</Link>
+          </div>
+          <p className="footer-disclaimer">
+            Trade Stag is an information platform for educational purposes only.
+            Not SEBI-registered. Not investment advice.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }

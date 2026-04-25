@@ -135,7 +135,7 @@ function Sidebar({ counts }) {
       {user?.is_owner && (
         <div className="sidebar-section">
           <div className="sidebar-section-label">Admin</div>
-          <Link to="/app/admin" className={`sidebar-link ${loc.pathname === '/app/admin' ? 'active' : ''}`}>
+          <Link to="/app/admin" className={`sidebar-link ${path === '/app/admin' ? 'active' : ''}`}>
             <span className="si-icon">🔧</span>
             <span className="si-label">Admin Panel</span>
           </Link>

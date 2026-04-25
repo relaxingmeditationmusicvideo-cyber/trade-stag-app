@@ -166,10 +166,10 @@ export default function AdminPanel({ api }) {
         </div>
       </div>
 
-      {users.length === 0 && (
-        <div style={{ textAlign: 'center', padding: 40, color: 'var(--muted)' }}>
-          No users have signed up yet.
-        </div>
+      {users.length === 0 && !loading && (
+        <p className="text-muted" style={{ textAlign: 'center', padding: 20 }}>
+          No users found.
+        </p>
       )}
     </div>
   );
