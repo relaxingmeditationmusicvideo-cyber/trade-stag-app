@@ -1,56 +1,61 @@
 import React, { useEffect, useRef, memo } from 'react';
 
 /**
- * TradingView Advanced Chart Widget — embeds a full interactive chart
- * with candlesticks, volume, and 100+ indicators users can add.
+ * TradingView Chart Widget — uses TradingView.widget() constructor
+ * which loads charts directly without promotional popups.
  *
  * Props:
  *   symbol   — NSE stock symbol (e.g. "RELIANCE")
- *   height   — chart height in px (default 500)
+ *   height   — chart height in px or '100%' (default 500)
  *   compact  — if true, uses smaller height and hides some toolbar items
  */
 function TradingViewChart({ symbol, height = 500, compact = false }) {
   const containerRef = useRef(null);
-  const scriptRef = useRef(null);
+  const widgetIdRef = useRef('tv_chart_' + Math.random().toString(36).slice(2, 10));
 
   useEffect(() => {
     if (!containerRef.current || !symbol) return;
 
-    // Clean previous widget
+    // Clear previous content
     containerRef.current.innerHTML = '';
 
-    const widgetDiv = document.createElement('div');
-    widgetDiv.className = 'tradingview-widget-container__widget';
-    widgetDiv.style.height = '100%';
-    widgetDiv.style.width = '100%';
-    containerRef.current.appendChild(widgetDiv);
+    // Create target div for the widget
+    const targetDiv = document.createElement('div');
+    targetDiv.id = widgetIdRef.current;
+    targetDiv.style.height = '100%';
+    targetDiv.style.width = '100%';
+    containerRef.current.appendChild(targetDiv);
 
+    // Load TradingView library and create widget
     const script = document.createElement('script');
-    script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
-    script.type = 'text/javascript';
+    script.src = 'https://s3.tradingview.com/tv.js';
     script.async = true;
-    script.innerHTML = JSON.stringify({
-      autosize: true,
-      symbol: `NSE:${symbol}`,
-      interval: 'D',
-      timezone: 'Asia/Kolkata',
-      theme: 'dark',
-      style: '1',
-      locale: 'en',
-      backgroundColor: 'rgba(10, 12, 16, 1)',
-      gridColor: 'rgba(255, 255, 255, 0.04)',
-      hide_top_toolbar: compact,
-      hide_legend: false,
-      allow_symbol_change: !compact,
-      save_image: false,
-      calendar: false,
-      hide_volume: false,
-      support_host: 'https://www.tradingview.com',
-      studies: compact ? [] : ['RSI@tv-basicstudies'],
-      withdateranges: !compact,
-    });
-    containerRef.current.appendChild(script);
-    scriptRef.current = script;
+    script.onload = () => {
+      if (window.TradingView && containerRef.current) {
+        new window.TradingView.widget({
+          container_id: widgetIdRef.current,
+          autosize: true,
+          symbol: `NSE:${symbol}`,
+          interval: 'D',
+          timezone: 'Asia/Kolkata',
+          theme: 'dark',
+          style: '1',
+          locale: 'en',
+          toolbar_bg: '#0a0c10',
+          enable_publishing: false,
+          hide_top_toolbar: compact,
+          hide_legend: false,
+          allow_symbol_change: !compact,
+          save_image: false,
+          hide_volume: false,
+          studies: compact ? [] : ['RSI@tv-basicstudies'],
+          withdateranges: !compact,
+          backgroundColor: '#0a0c10',
+          gridColor: 'rgba(255, 255, 255, 0.04)',
+        });
+      }
+    };
+    document.head.appendChild(script);
 
     return () => {
       if (containerRef.current) {
