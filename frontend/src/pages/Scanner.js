@@ -184,7 +184,6 @@ function StockRow({ row, idx, onClick, onChart }) {
       <td className="muted" style={{ position: 'relative' }}>
         <span>{idx + 1}</span>
         <button
-          title="View chart"
           onClick={e => { e.stopPropagation(); onChart(row.symbol); }}
           style={{
             marginLeft: 6, background: 'rgba(255,255,255,0.06)',

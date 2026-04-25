@@ -104,12 +104,16 @@ function StockDetail({ api }) {
       }}>
         <div style={{
           padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)',
-          display: 'flex', alignItems: 'center', gap: 8,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
-          <span style={{ fontSize: 14, fontWeight: 600, color: '#06b6d4' }}>📈 {stock.symbol}</span>
-          <span style={{ fontSize: 11, color: '#8892a4' }}>NSE · Daily Chart · Add indicators from toolbar</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 16, fontWeight: 700, color: '#06b6d4' }}>{stock.symbol}</span>
+            <span style={{ fontSize: 12, color: '#8892a4' }}>NSE · Daily · Interactive Chart</span>
+          </div>
         </div>
-        <TradingViewChart symbol={stock.symbol} height={520} compact={false} />
+        <div style={{ height: 'calc(100vh - 320px)', minHeight: 500, maxHeight: 750 }}>
+          <TradingViewChart symbol={stock.symbol} height="100%" compact={false} />
+        </div>
       </div>
 
       {/* Tabs */}
