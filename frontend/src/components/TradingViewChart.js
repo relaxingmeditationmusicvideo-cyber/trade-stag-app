@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, memo } from 'react';
+import React, { memo, useMemo } from 'react';
 
 /**
- * TradingView Chart Widget — uses TradingView.widget() constructor
- * which loads charts directly without promotional popups.
+ * TradingView Chart — uses direct iframe embed (same approach as Chartink)
+ * to load charts instantly without any notification/popup.
  *
  * Props:
  *   symbol   — NSE stock symbol (e.g. "RELIANCE")
@@ -10,64 +10,32 @@ import React, { useEffect, useRef, memo } from 'react';
  *   compact  — if true, uses smaller height and hides some toolbar items
  */
 function TradingViewChart({ symbol, height = 500, compact = false }) {
-  const containerRef = useRef(null);
-  const widgetIdRef = useRef('tv_chart_' + Math.random().toString(36).slice(2, 10));
-
-  useEffect(() => {
-    if (!containerRef.current || !symbol) return;
-
-    // Clear previous content
-    containerRef.current.innerHTML = '';
-
-    // Create target div for the widget
-    const targetDiv = document.createElement('div');
-    targetDiv.id = widgetIdRef.current;
-    targetDiv.style.height = '100%';
-    targetDiv.style.width = '100%';
-    containerRef.current.appendChild(targetDiv);
-
-    // Load TradingView library and create widget
-    const script = document.createElement('script');
-    script.src = 'https://s3.tradingview.com/tv.js';
-    script.async = true;
-    script.onload = () => {
-      if (window.TradingView && containerRef.current) {
-        new window.TradingView.widget({
-          container_id: widgetIdRef.current,
-          autosize: true,
-          symbol: `NSE:${symbol}`,
-          interval: 'D',
-          timezone: 'Asia/Kolkata',
-          theme: 'dark',
-          style: '1',
-          locale: 'en',
-          toolbar_bg: '#0a0c10',
-          enable_publishing: false,
-          hide_top_toolbar: compact,
-          hide_legend: false,
-          allow_symbol_change: !compact,
-          save_image: false,
-          hide_volume: false,
-          studies: compact ? [] : ['RSI@tv-basicstudies'],
-          withdateranges: !compact,
-          backgroundColor: '#0a0c10',
-          gridColor: 'rgba(255, 255, 255, 0.04)',
-        });
-      }
-    };
-    document.head.appendChild(script);
-
-    return () => {
-      if (containerRef.current) {
-        containerRef.current.innerHTML = '';
-      }
-    };
+  const src = useMemo(() => {
+    const params = new URLSearchParams({
+      symbol: `NSE:${symbol}`,
+      interval: 'D',
+      theme: 'dark',
+      style: '1',
+      locale: 'en',
+      timezone: 'Asia/Kolkata',
+      toolbar_bg: '#0a0c10',
+      enable_publishing: '0',
+      hide_top_toolbar: compact ? '1' : '0',
+      hide_legend: '0',
+      allow_symbol_change: compact ? '0' : '1',
+      save_image: '0',
+      hide_volume: '0',
+      withdateranges: compact ? '0' : '1',
+      hide_side_toolbar: '0',
+      studies: compact ? '' : 'RSI@tv-basicstudies',
+      utm_source: 'tradestag.com',
+      utm_medium: 'widget',
+    });
+    return `https://s.tradingview.com/widgetembed/?${params.toString()}`;
   }, [symbol, compact]);
 
   return (
     <div
-      className="tradingview-widget-container"
-      ref={containerRef}
       style={{
         height: height === '100%' ? '100%' : (compact ? 380 : height),
         width: '100%',
@@ -76,7 +44,19 @@ function TradingViewChart({ symbol, height = 500, compact = false }) {
         border: '1px solid rgba(255,255,255,0.08)',
         background: '#0a0c10',
       }}
-    />
+    >
+      <iframe
+        title={`${symbol} chart`}
+        src={src}
+        style={{
+          width: '100%',
+          height: '100%',
+          border: 'none',
+          display: 'block',
+        }}
+        allowFullScreen
+      />
+    </div>
   );
 }
 
