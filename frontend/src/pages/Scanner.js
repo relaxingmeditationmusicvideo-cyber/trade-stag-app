@@ -120,8 +120,61 @@ function ScoreCell({ score, top, color }) {
   );
 }
 
+// ─── Chart Modal (Chartink-style popup) ───
+function ChartModal({ symbol, onClose }) {
+  if (!symbol) return null;
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+        background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)',
+        zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: 20, animation: 'fadeIn 0.15s ease',
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          width: '92vw', maxWidth: 1200, height: '80vh', maxHeight: 700,
+          background: '#0d0f14', borderRadius: 14,
+          border: '1px solid rgba(255,255,255,0.1)',
+          boxShadow: '0 25px 60px rgba(0,0,0,0.6)',
+          display: 'flex', flexDirection: 'column', overflow: 'hidden',
+        }}
+      >
+        {/* Modal Header */}
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '12px 20px', borderBottom: '1px solid rgba(255,255,255,0.08)',
+          background: 'rgba(255,255,255,0.02)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 18, fontWeight: 700, color: '#06b6d4' }}>{symbol}</span>
+            <span style={{ fontSize: 12, color: '#8892a4' }}>NSE · Daily · Interactive Chart</span>
+          </div>
+          <button
+            onClick={onClose}
+            style={{
+              background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
+              color: '#8892a4', borderRadius: 6, cursor: 'pointer', fontSize: 13,
+              padding: '6px 14px', transition: 'all 0.15s', fontWeight: 500,
+            }}
+            onMouseEnter={e => { e.target.style.background = 'rgba(239,68,68,0.15)'; e.target.style.color = '#ef4444'; e.target.style.borderColor = 'rgba(239,68,68,0.3)'; }}
+            onMouseLeave={e => { e.target.style.background = 'rgba(255,255,255,0.06)'; e.target.style.color = '#8892a4'; e.target.style.borderColor = 'rgba(255,255,255,0.12)'; }}
+          >✕ Close</button>
+        </div>
+        {/* Chart Area */}
+        <div style={{ flex: 1, padding: 8 }}>
+          <TradingViewChart symbol={symbol} height="100%" compact={false} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Stock row ───
-function StockRow({ row, idx, onClick, onChart, chartOpen }) {
+function StockRow({ row, idx, onClick, onChart }) {
   const gradeColor = gradeBg(row.grade);
   const sparkColor = (row.chg_5d || 0) >= 0 ? '#10b981' : '#ef4444';
   const ts = row.trade_setup || {};
@@ -131,14 +184,16 @@ function StockRow({ row, idx, onClick, onChart, chartOpen }) {
       <td className="muted" style={{ position: 'relative' }}>
         <span>{idx + 1}</span>
         <button
-          title={chartOpen ? 'Hide chart' : 'Show chart'}
+          title="View chart"
           onClick={e => { e.stopPropagation(); onChart(row.symbol); }}
           style={{
-            marginLeft: 6, background: chartOpen ? 'rgba(6,182,212,0.2)' : 'rgba(255,255,255,0.06)',
-            border: chartOpen ? '1px solid rgba(6,182,212,0.5)' : '1px solid rgba(255,255,255,0.1)',
-            color: chartOpen ? '#06b6d4' : '#8892a4', borderRadius: 4, cursor: 'pointer',
+            marginLeft: 6, background: 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            color: '#8892a4', borderRadius: 4, cursor: 'pointer',
             fontSize: 13, padding: '2px 6px', lineHeight: 1, transition: 'all 0.15s',
           }}
+          onMouseEnter={e => { e.target.style.background = 'rgba(6,182,212,0.2)'; e.target.style.color = '#06b6d4'; }}
+          onMouseLeave={e => { e.target.style.background = 'rgba(255,255,255,0.06)'; e.target.style.color = '#8892a4'; }}
         >📈</button>
       </td>
       <td><strong>{row.symbol}</strong></td>
@@ -323,7 +378,6 @@ export default function Scanner({ data, loading }) {
           )}
           {filtered.slice(0, 20).map((row, idx) => {
             const tag = row.avwap_tag || '';
-            const isChartOpen = chartSymbol === row.symbol;
             return (
               <div
                 key={row.symbol}
@@ -386,21 +440,17 @@ export default function Scanner({ data, loading }) {
                     return <span key={i} className="signal-tag">{cleanSig}</span>;
                   })}
                   <button
-                    onClick={e => { e.stopPropagation(); setChartSymbol(isChartOpen ? null : row.symbol); }}
+                    onClick={e => { e.stopPropagation(); setChartSymbol(row.symbol); }}
                     style={{
-                      marginLeft: 'auto', background: isChartOpen ? 'rgba(6,182,212,0.2)' : 'rgba(255,255,255,0.06)',
-                      border: isChartOpen ? '1px solid rgba(6,182,212,0.5)' : '1px solid rgba(255,255,255,0.1)',
-                      color: isChartOpen ? '#06b6d4' : '#8892a4', borderRadius: 6, cursor: 'pointer',
+                      marginLeft: 'auto', background: 'rgba(255,255,255,0.06)',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      color: '#8892a4', borderRadius: 6, cursor: 'pointer',
                       fontSize: 12, padding: '4px 12px', transition: 'all 0.15s',
                     }}
-                  >{isChartOpen ? 'Hide Chart ✕' : '📈 View Chart'}</button>
+                    onMouseEnter={e => { e.target.style.background = 'rgba(6,182,212,0.2)'; e.target.style.color = '#06b6d4'; }}
+                    onMouseLeave={e => { e.target.style.background = 'rgba(255,255,255,0.06)'; e.target.style.color = '#8892a4'; }}
+                  >📈 View Chart</button>
                 </div>
-                {/* Expandable TradingView Chart */}
-                {isChartOpen && (
-                  <div style={{ marginTop: 12 }} onClick={e => e.stopPropagation()}>
-                    <TradingViewChart symbol={row.symbol} height={480} compact={false} />
-                  </div>
-                )}
               </div>
             );
           })}
@@ -420,32 +470,12 @@ export default function Scanner({ data, loading }) {
           </thead>
           <tbody>
             {filtered.slice(0, 200).map((row, i) => (
-              <React.Fragment key={row.symbol + i}>
-                <StockRow
-                  row={row} idx={i}
-                  onClick={() => navigate(`/app/stock/${row.symbol}`)}
-                  onChart={sym => setChartSymbol(chartSymbol === sym ? null : sym)}
-                  chartOpen={chartSymbol === row.symbol}
-                />
-                {chartSymbol === row.symbol && (
-                  <tr>
-                    <td colSpan={22} style={{ padding: 0, background: '#0a0c10' }}>
-                      <div style={{ padding: '8px 12px 12px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                          <span style={{ fontSize: 13, fontWeight: 600, color: '#06b6d4' }}>
-                            {row.symbol} — Daily Chart
-                          </span>
-                          <button
-                            onClick={() => setChartSymbol(null)}
-                            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#8892a4', borderRadius: 4, cursor: 'pointer', fontSize: 11, padding: '2px 8px' }}
-                          >Close ✕</button>
-                        </div>
-                        <TradingViewChart symbol={row.symbol} height={480} compact={false} />
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </React.Fragment>
+              <StockRow
+                key={row.symbol + i}
+                row={row} idx={i}
+                onClick={() => navigate(`/app/stock/${row.symbol}`)}
+                onChart={sym => setChartSymbol(sym)}
+              />
             ))}
           </tbody>
         </table>
@@ -457,6 +487,9 @@ export default function Scanner({ data, loading }) {
         )}
       </div>
       )}
+
+      {/* Chart Popup Modal */}
+      {chartSymbol && <ChartModal symbol={chartSymbol} onClose={() => setChartSymbol(null)} />}
     </div>
   );
 }

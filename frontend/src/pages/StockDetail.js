@@ -96,7 +96,19 @@ function StockDetail({ api }) {
       </div>
 
       {/* TradingView Chart */}
-      <div style={{ marginBottom: 16 }}>
+      <div style={{
+        marginBottom: 20, background: '#0d0f14', borderRadius: 14,
+        border: '1px solid rgba(255,255,255,0.08)',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+        overflow: 'hidden',
+      }}>
+        <div style={{
+          padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)',
+          display: 'flex', alignItems: 'center', gap: 8,
+        }}>
+          <span style={{ fontSize: 14, fontWeight: 600, color: '#06b6d4' }}>📈 {stock.symbol}</span>
+          <span style={{ fontSize: 11, color: '#8892a4' }}>NSE · Daily Chart · Add indicators from toolbar</span>
+        </div>
         <TradingViewChart symbol={stock.symbol} height={520} compact={false} />
       </div>
 

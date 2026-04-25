@@ -2791,3 +2791,9 @@ html, body, #root {
   .upgrade-prompt-title { font-size: 18px; }
   .upgrade-prompt-desc { font-size: 13px; }
 }
+
+/* ─── Chart Modal Animation ─── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
