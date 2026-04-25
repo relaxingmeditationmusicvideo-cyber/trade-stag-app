@@ -7547,6 +7547,137 @@ class NSEAnalysisPipeline:
         self._fii_dii_data = {}
         self._pcr_data     = {}
 
+    @staticmethod
+    def _compute_avwap_scanner(daily_df, last, delivery_pct=None):
+        """
+        Full AVWAP Pre-Breakout scanner:
+          Step 1: Base candidate filter (uptrend + near breakout + vol spike + tight consolidation)
+          Step 2: Anchored VWAP from swing low
+          Step 3: Smart money filter (above AVWAP 3+ candles, near resistance, vol contraction)
+          Step 4: Score 0-5
+          Step 5: Tags
+        Returns dict of avwap_* fields to merge into the stock result.
+        """
+        import numpy as np
+
+        close = daily_df["Close"]
+        high  = daily_df["High"]
+        low   = daily_df["Low"]
+        vol   = daily_df["Volume"]
+        n     = len(daily_df)
+
+        defaults = {
+            "avwap_score": 0, "avwap_value": 0.0, "avwap_above": False,
+            "avwap_held_days": 0, "avwap_dist_to_breakout": 0.0,
+            "avwap_vol_vs_avg": 0.0, "avwap_consolidation": False,
+            "avwap_candidate": False, "avwap_smart_money": False,
+            "avwap_tag": "",
+        }
+        if n < 50:
+            return defaults
+
+        c  = float(close.iloc[-1])
+        h  = float(high.iloc[-1])
+        lo = float(low.iloc[-1])
+        v  = float(vol.iloc[-1])
+
+        # -- STEP 1: BASE SCANNER (Candidate Filter) --
+        sma20 = float(close.tail(20).mean())
+        sma50 = float(close.tail(50).mean())
+
+        # 1a. Uptrend: Close > SMA20 AND Close > SMA50
+        uptrend = c > sma20 and c > sma50
+
+        # 1b. Near Breakout Zone: Close >= 95% of 20-day highest high
+        high_20d = float(high.tail(20).max())
+        near_breakout = c >= high_20d * 0.95 if high_20d > 0 else False
+
+        # 1c. Volume Spike: Volume > 1.5 * SMA(20, Volume)
+        vol_sma20 = float(vol.tail(20).mean())
+        vol_spike = v > 1.5 * vol_sma20 if vol_sma20 > 0 else False
+        vol_vs_avg = round(v / vol_sma20, 2) if vol_sma20 > 0 else 0
+
+        # 1d. Tight Consolidation: (High - Low) / Close < 0.03
+        range_pct = (h - lo) / c if c > 0 else 1
+        tight_consolidation = range_pct < 0.03
+
+        is_candidate = uptrend and near_breakout
+
+        # -- STEP 2: AVWAP CALCULATION --
+        lookback_avwap = min(30, n)
+        tail_low = low.tail(lookback_avwap)
+        anchor_idx = int(tail_low.values.argmin())
+        anchor_pos = n - lookback_avwap + anchor_idx
+
+        typical_price = (high.iloc[anchor_pos:] + low.iloc[anchor_pos:] + close.iloc[anchor_pos:]) / 3.0
+        cum_tp_vol = (typical_price * vol.iloc[anchor_pos:]).cumsum()
+        cum_vol    = vol.iloc[anchor_pos:].cumsum()
+        avwap_series = cum_tp_vol / cum_vol.replace(0, np.nan)
+
+        avwap_value = round(float(avwap_series.iloc[-1]), 2) if not np.isnan(avwap_series.iloc[-1]) else 0
+        above_avwap = c > avwap_value if avwap_value > 0 else False
+
+        # -- STEP 3: SMART MONEY FILTER --
+        held_days = 0
+        if avwap_value > 0 and len(avwap_series) >= 3:
+            for i in range(len(avwap_series) - 1, -1, -1):
+                av = float(avwap_series.iloc[i])
+                cl = float(close.iloc[anchor_pos + i])
+                if cl > av and not np.isnan(av):
+                    held_days += 1
+                else:
+                    break
+        avwap_held = held_days >= 3
+
+        dist_to_breakout = round(((high_20d - c) / c) * 100, 2) if c > 0 else 99
+        near_resistance = dist_to_breakout < 5
+
+        if n >= 10:
+            recent_ranges = ((high.tail(5) - low.tail(5)) / close.tail(5)).values
+            prev_ranges   = ((high.iloc[-10:-5] - low.iloc[-10:-5]) / close.iloc[-10:-5]).values
+            avg_recent = float(np.mean(recent_ranges))
+            avg_prev   = float(np.mean(prev_ranges))
+            vol_contraction = avg_recent < avg_prev * 0.85
+        else:
+            vol_contraction = False
+
+        smart_money = above_avwap and avwap_held and near_resistance
+
+        # -- STEP 4: SCORING (0-5) --
+        score = 0
+        if c > sma20:            score += 1
+        if c > sma50:            score += 1
+        if vol_spike:            score += 1
+        if above_avwap:          score += 1
+        if tight_consolidation:  score += 1
+
+        # -- STEP 5: TAG --
+        tag = ""
+        if score >= 4 and smart_money:
+            tag = "🔥 Hidden Breakout Candidate"
+        elif score >= 4:
+            tag = "⚡ Smart Money Active"
+        elif score >= 3 and above_avwap:
+            tag = "📊 AVWAP Setup Forming"
+
+        return {
+            "avwap_score": score,
+            "avwap_value": avwap_value,
+            "avwap_above": above_avwap,
+            "avwap_held_days": held_days,
+            "avwap_dist_to_breakout": dist_to_breakout,
+            "avwap_vol_vs_avg": vol_vs_avg,
+            "avwap_consolidation": tight_consolidation,
+            "avwap_vol_contraction": vol_contraction,
+            "avwap_candidate": is_candidate,
+            "avwap_smart_money": smart_money,
+            "avwap_tag": tag,
+            "avwap_sma20": round(sma20, 2),
+            "avwap_sma50": round(sma50, 2),
+            "avwap_high_20d": round(high_20d, 2),
+            "avwap_delivery_pct": delivery_pct,
+        }
+
     def analyze_one(self, symbol):
         try:
             raw = self.price_mgr.fetch_stock(symbol, bhav_history=self.bhav_history)
@@ -11442,221 +11573,4 @@ async function getAISummary(symbol) {{
   const box = document.getElementById('ai-summary-' + symbol);
   if (!s || !box) return;
 
-  box.innerHTML = '<span style="color:#38bdf8">⏳ Analysing ' + symbol + ' with India-first AI...</span>';
-
-  const prompt = `You are an expert Indian stock market analyst specialising in NSE swing trading.
-Analyse this stock briefly in 4-5 sentences. Focus only on Indian market signals:
-
-Stock: ${{symbol}}
-Price: ₹${{s.price}}
-Grade: ${{s.grade}} (Score: ${{s.score}}/100)
-RSI: ${{s.rsi}} | ADX: ${{s.adx}} | Delivery: ${{s.delivery_pct}}%
-Supertrend: ${{s.supertrend_dir == 1 ? 'BUY' : 'SELL'}}
-FII Absorption: ${{s.score_breakdown?.fii_absorption > 0 ? 'YES' : 'NO'}}
-OI: ${{s.oi_buildup_type || 'N/A'}} | Stage: ${{s.stage}}
-52W: ₹${{s.high_52w}} (${{s.pct_from_high?.toFixed(1)}}% from high)
-Signals: ${{(s.active_signals||[]).slice(0,5).join(', ')}}
-
-Give: 1) Current setup quality 2) Key India-specific signal supporting or opposing 3) Risk to watch 4) Should swing traders enter, wait or avoid? Be direct and concise.`;
-
-  try {{
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {{
-      method: 'POST',
-      headers: {{ 'Content-Type': 'application/json' }},
-      body: JSON.stringify({{
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 300,
-        messages: [{{ role: 'user', content: prompt }}]
-      }})
-    }});
-    const data = await resp.json();
-    const text = data?.content?.[0]?.text || 'AI analysis unavailable.';
-    box.innerHTML = '<div style="color:var(--text);line-height:1.7">' + (text||'').split('\\n').join('<br>') + '</div><div style="margin-top:6px;font-size:10px;color:var(--muted)">⚠️ Educational only.</div>';
-
-  }} catch(e) {{
-    box.innerHTML = '<span style="color:var(--muted)">AI unavailable in standalone mode. Works when served via the SaaS backend (uvicorn main:app).</span>';
-  }}
-}}
-document.addEventListener('keydown', e => {{ if (e.key==='Escape') closeModal(); }});
-</script>
-
-<div class="footer">
-  ⚠️ This report is for educational and informational purposes only. Not financial advice.<br>
-  Entry/SL/Target prices are algorithmic estimates — always verify before trading.<br>
-  Fundamentals from Yahoo Finance · Pledging from NSE (best-effort, quarterly data)<br>
-  Trade Stag — NSE 500 Scanner — Generated {analysis_time}
-  NSE 500 Swing Analyzer v7.2 — Generated {analysis_time}
-</div>
-</div>
-</div>
-</div>
-</html>"""
-
-        with open(output_file, "w", encoding="utf-8") as f:
-            f.write(html)
-
-        print(f"\n  📄 Report saved → {output_file}")
-        return output_file
-
-
-# ─────────────────────────────────────────────────────────────────────
-#  ENTRY POINT
-# ─────────────────────────────────────────────────────────────────────
-def main():
-    parser = argparse.ArgumentParser(description="NSE 500 Swing Trading Analyzer v7.0 — India First")
-    parser.add_argument("--top",     type=int,   default=0,   help="Limit to top N stocks (0=all)")
-    parser.add_argument("--workers", type=int,   default=6,   help="Parallel download threads")
-    parser.add_argument("--out",     type=str,   default="",  help="Output HTML filename")
-    parser.add_argument("--capital", type=float, default=0,   help="Your trading capital in ₹ (default 5,00,000)")
-    args = parser.parse_args()
-
-    capital = args.capital if args.capital > 0 else CFG["default_capital"]
-    CFG["default_capital"] = capital  # override so HTML picks it up
-
-    print("""
-╔══════════════════════════════════════════════════════════════╗
-║   NSE 500 Swing Trading Analyzer  v7.1 — INDIA FIRST         ║
-║   Expert-Audited · Delivery(dir) · FII(gate) · OI · VIX     ║
-╚══════════════════════════════════════════════════════════════╝
-    """)
-    print(f"   💰 Capital: ₹{capital:,.0f}  |  Risk/trade: {CFG['risk_per_trade_pct']}%  |  Max risk: ₹{capital*CFG['risk_per_trade_pct']/100:,.0f}")
-
-    # ── v6.0: Warm NSE session ONCE before all fetchers ──
-    print("\n🔑 Warming NSE session (required for PCR / Bulk Deals / FII-DII)...")
-    NSESession.get().warm()
-
-    fetcher = NSEDataFetcher()
-    symbols = fetcher.get_nifty500_list()
-    if args.top > 0:
-        symbols = symbols[:args.top]
-        print(f"   🔬 Limited to first {args.top} stocks (--top flag)")
-
-    print("\n📡 Fetching Nifty options PCR data...")
-    pcr_data  = fetcher.get_pcr_data()
-
-    print("\n📌 Calculating Nifty Max Pain...")
-    max_pain_data = MaxPainCalculator.fetch_nifty_max_pain()
-    if max_pain_data.get("fetched"):
-        print(f"   📌 Max Pain: {max_pain_data['max_pain']} | {max_pain_data['sentiment']}")
-    else:
-        # Fallback: estimate Max Pain as nearest round 100 below current Nifty
-        try:
-            sess_mp = requests.Session()
-            sess_mp.headers.update(HEADERS)
-            r_mp = sess_mp.get("https://www.nseindia.com/api/allIndices", timeout=10)
-            if r_mp.status_code == 200 and r_mp.text.strip()[0] in "[{":
-                for item in r_mp.json().get("data", []):
-                    if str(item.get("index","")) == "NIFTY 50":
-                        cmp = float(item.get("last", 0) or 0)
-                        if cmp > 0:
-                            mp_est = round(cmp / 100) * 100  # nearest 100
-                            dist   = round((cmp / mp_est - 1) * 100, 2) if mp_est else 0
-                            sent   = "Price above Max Pain" if cmp > mp_est else "Price below Max Pain"
-                            print(f"   📌 Max Pain estimated: ₹{mp_est:,.0f} (Nifty CMP ₹{cmp:,.0f})")
-                            return {"max_pain": mp_est, "cmp": cmp, "distance_pct": dist,
-                                    "sentiment": sent, "fetched": True}
-        except Exception:
-            pass
-        print("   ⚠️  Max Pain: unavailable")
-
-    print("\n📈 Downloading Nifty 50 benchmark data...")
-    pipeline = NSEAnalysisPipeline()
-    ok = pipeline.price_mgr.fetch_nifty()
-    print(f"   {'✅' if ok else '⚠️ '} Nifty 50 {'loaded' if ok else 'unavailable (RS limited)'}")
-
-    # ── v7.0: Pass PCR data to pipeline scorer ──
-    pipeline._pcr_data = pcr_data
-
-    output = pipeline.run(symbols, max_workers=args.workers)
-    if not output:
-        print("\n❌ No results — check internet connection.")
-        return
-
-    results, sorted_sectors, breadth_data, top_trades, fii_dii_data = output
-
-    if not results:
-        print("\n❌ No stocks passed quality filters.")
-        return
-
-    # ── Summary ──
-    print("\n" + "─" * 60)
-    print(f"  {'GRADE':<8} {'COUNT':<8} {'%'}")
-    print("─" * 60)
-    from collections import Counter
-    gc = Counter(r["grade"] for r in results)
-    for g in ["A+","A","B+","B","C","D"]:
-        cnt = gc.get(g, 0)
-        pct = cnt / len(results) * 100
-        bar = "█" * int(pct / 2)
-        print(f"  {g:<8} {cnt:<8} {pct:5.1f}%  {bar}")
-    print("─" * 60)
-
-    rs_elite      = [r for r in results if r["rs_percentile"] >= CFG["rs_elite_pct"]]
-    stage2_stocks = [r for r in results if r.get("is_stage2")]
-    fund_strong   = [r for r in results if r.get("fund_grade") == "Strong"]
-    pledge_danger = [r for r in results if r.get("pledge_danger")]
-    near_earn     = [r for r in results if r["earnings_info"].get("has_upcoming")]
-    accum_stocks  = [r for r in results if r.get("is_accumulating")]
-    st_buy        = [r for r in results if r.get("supertrend_dir") == 1]
-    bulk_buys     = [r for r in results if r.get("bulk_deal", {}).get("bulk_buy") or r.get("bulk_deal", {}).get("block_buy")]
-    bulk_sells    = [r for r in results if r.get("bulk_deal", {}).get("bulk_sell")]
-    circuit_risk  = [r for r in results if r.get("circuit_risk")]
-
-    risk_amt = round(capital * CFG["risk_per_trade_pct"] / 100)
-
-    fii_sent = fii_dii_data.get("sentiment", "N/A")
-    fii_5d   = fii_dii_data.get("fii_5d")
-
-    print(f"\n  🌐 Market Breadth: {breadth_data['pct']}% above 200 EMA → {breadth_data['status']}")
-    print(f"  💹 FII 5-Day Flow: {'₹{:,.0f}Cr'.format(fii_5d) if fii_5d else 'N/A'} → {fii_sent}")
-    print(f"  🚀 RS Elite (>90th %ile): {len(rs_elite)} stocks")
-    print(f"  ✅ Stage 2 (buy zone):     {len(stage2_stocks)} stocks")
-    print(f"  💎 Fundamentally Strong:  {len(fund_strong)} stocks")
-    print(f"  🏦 Accumulation Detected: {len(accum_stocks)} stocks")
-    print(f"  📈 Supertrend BUY:         {len(st_buy)} stocks")
-    print(f"  📋 Bulk Buys Today:        {len(bulk_buys)} stocks")
-    if bulk_sells:
-        print(f"  🚨 Bulk SELLS Today:       {len(bulk_sells)} stocks — CAUTION")
-    if circuit_risk:
-        print(f"  ⚡ Near Circuit Limit:     {len(circuit_risk)} stocks — AVOID NEXT SESSION")
-    print(f"  🚨 Pledge Danger (>{CFG['pledge_danger_pct']}%):    {len(pledge_danger)} stocks — AVOID")
-    print(f"  ⚠️  Near Earnings:         {len(near_earn)} stocks")
-
-    print(f"\n🏆 TOP 10 SMART OPPORTUNITIES (by Confidence):\n")
-    for i, r in enumerate(top_trades, 1):
-        sigs  = ", ".join(r["active_signals"][:3]) if r["active_signals"] else "—"
-        ts    = r.get("trade_setup", {})
-        entry_v = ts.get("entry", 0)
-        sl_v    = ts.get("stop_loss", 0)
-        qty     = int(risk_amt / (entry_v - sl_v)) if entry_v and sl_v and entry_v > sl_v else 0
-        conf    = r.get("confidence_pct", 0)
-        setup   = ts.get("setup_type", "—")
-        print(f"  #{i:<2} {r['symbol']:<14} {r['grade']:>2} ({r['score']:>3})  "
-              f"Conf:{conf}%  Setup:{setup:<12}  ₹{r['price']:>9,.2f}")
-        if ts.get("entry"):
-            print(f"       Entry ₹{entry_v:,.0f} → SL ₹{sl_v:,.0f} → T1 ₹{ts.get('target1',0):,.0f}  |  Qty: {qty:,}")
-
-    print(f"\n🏭 Top 5 Sectors by Momentum:")
-    for sec, strength, avg_rs, count, stage2_count, pct_above_200, avg_adx in sorted_sectors[:5]:
-        print(f"     {sec:<20}  Strength:{strength:>5.1f}  Avg RS:{avg_rs:>5.1f}  ({count} stocks)")
-
-    date_str    = datetime.now().strftime("%Y%m%d_%H%M")
-    output_file = args.out or f"nse500_swing_v7_{date_str}.html"
-    reporter    = HTMLReportGenerator()
-    reporter.generate(results, pcr_data, sorted_sectors, breadth_data,
-                      capital=capital, output_file=output_file,
-                      top_trades=top_trades, fii_dii_data=fii_dii_data,
-                      max_pain_data=max_pain_data)
-
-    print(f"""
-╔══════════════════════════════════════════════════════════════╗
-║  ✅  Analysis Complete! — v7.0 India First                   ║
-║                                                              ║
-║  Open in any browser:                                        ║
-║  → {output_file:<54}║
-╚══════════════════════════════════════════════════════════════╝
-    """)
-
-
-if __name__ == "__main__":
-    main()
+  box.innerHTML = '<span style="color:#38bdf8">⏳ Analysing ' + symbol + ' with I

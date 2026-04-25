@@ -557,8 +557,8 @@ def _normalize_stock(raw):
         normalized["avwap_sma50"]            = _f(raw.get("avwap_sma50"))
         normalized["avwap_high_20d"]         = _f(raw.get("avwap_high_20d"))
         normalized["flag_avwap_breakout"]    = bool(
-            normalized["avwap_score"] >= 4
-            and normalized["avwap_candidate"]
+            normalized["avwap_score"] >= 3
+            and normalized["avwap_above"]
         )
 
         return normalized
@@ -1242,32 +1242,3 @@ def search_stocks(q: str = Query(..., min_length=1)):
         return {"results": [], "error": f"{type(e).__name__}: {e}"}
 
 
-# ─── Serve React frontend (production build) ───
-import pathlib
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
-
-_static_dir = pathlib.Path(__file__).parent / "static"
-if _static_dir.exists():
-    app.mount("/static", StaticFiles(directory=str(_static_dir / "static")), name="react-static")
-
-    @app.get("/{full_path:path}")
-    async def serve_react(full_path: str):
-        """Catch-all: serve React index.html for client-side routing.
-        IMPORTANT: skip /api/ paths so FastAPI routes win."""
-        # Never intercept API or docs routes
-        if full_path.startswith("api/") or full_path.startswith("docs") or full_path.startswith("openapi") or full_path.startswith("redoc"):
-            raise HTTPException(status_code=404, detail="Not Found")
-        file_path = _static_dir / full_path
-        if file_path.is_file():
-            return FileResponse(str(file_path))
-        return FileResponse(str(_static_dir / "index.html"))
-
-    logger.info("✅ Serving React frontend from /static")
-else:
-    logger.info("ℹ️ No static/ folder found — API-only mode")
-
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=False)
