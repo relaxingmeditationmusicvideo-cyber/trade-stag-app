@@ -3,18 +3,67 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 
 // Trade Stag is positioned as an educational screening tool.
+// All plans require admin approval — no payment gateway.
 
-const FEATURES = [
-  'Daily NSE 500 scan (auto-updated after market close)',
-  'All 20+ screening tools including AVWAP Pre-Breakout Scanner',
-  'Full stock data cards with technical indicators',
-  'Pattern detection (VCP, Breakout, NR7, AVWAP...)',
-  'Sector strength analytics',
-  'Score breakdowns & multi-factor analysis',
-  'Institutional accumulation detection',
-  'Smart money & delivery analysis',
-  'Stage 2 uptrend scanner',
-  'Fundamental screening & quality scores',
+const TIERS = [
+  {
+    id: 'free',
+    name: 'Free',
+    price: '₹0',
+    period: '/10 days',
+    tagline: 'Try the tool with basic access',
+    features: [
+      'Daily NSE 500 scan',
+      'Access to 3 core screeners',
+      'Market pulse overview',
+      'End-of-day data',
+      'Community disclaimer',
+    ],
+    limitations: [
+      'No historical scans',
+      'No stock-level deep dive',
+      'No sector analytics',
+    ],
+    featured: false,
+  },
+  {
+    id: 'pro',
+    name: 'Pro',
+    price: '₹499',
+    period: '/month',
+    tagline: 'Full screening tools for active researchers',
+    features: [
+      'Everything in Free',
+      'All 20+ screening tools',
+      'Full stock data cards',
+      'Pattern detection (VCP, Breakout, NR7...)',
+      'Sector strength analytics',
+      'Score breakdowns',
+      'Export to CSV',
+      'Email support',
+    ],
+    limitations: [],
+    featured: true,
+  },
+  {
+    id: 'premium',
+    name: 'Premium',
+    price: '₹1,499',
+    period: '/month',
+    tagline: 'All tools and data for power users',
+    features: [
+      'Everything in Pro',
+      'AVWAP Pre-Breakout Scanner',
+      'Historical scans (90-day archive)',
+      'Custom watchlists (coming soon)',
+      'Advanced filters & combinations',
+      'API access (beta)',
+      'Priority support',
+      'Weekly market data digest',
+    ],
+    limitations: [],
+    featured: false,
+  },
 ];
 
 const FAQ = [
@@ -32,42 +81,78 @@ const FAQ = [
 export default function Pricing() {
   const { user } = useAuth();
 
+  const isCurrentPlan = (tierId) => {
+    if (!user) return false;
+    if (user.is_owner) return tierId === 'premium';
+    return user.effective_plan === tierId;
+  };
+
+  const getCtaInfo = (tier) => {
+    if (!user) {
+      return { label: 'Sign Up for Access', link: '/signup', disabled: false };
+    }
+    if (user.is_owner) {
+      return { label: 'Full Access (Owner)', link: '/app', disabled: false };
+    }
+    if (!user.approved && user.effective_plan === 'pending') {
+      return { label: 'Pending Admin Approval', link: null, disabled: true };
+    }
+    if (isCurrentPlan(tier.id)) {
+      return { label: 'Current Plan', link: null, disabled: true };
+    }
+    if (user.approved) {
+      return { label: 'Go to App', link: '/app', disabled: false };
+    }
+    return { label: 'Sign Up for Access', link: '/signup', disabled: false };
+  };
+
   return (
     <div className="pricing-page">
       <section className="pricing-hero">
-        <h1>Get Full Access to Trade Stag</h1>
-        <p>Sign up and get approved by admin for complete access to all scanners and tools.</p>
+        <h1>Simple, transparent pricing</h1>
+        <p>Sign up and get approved by admin for access. All plans include the daily NSE 500 scan.</p>
+        <div className="pricing-toggle-note">All plans require admin approval after signup.</div>
       </section>
 
-      <section className="pricing-tiers" style={{ justifyContent: 'center' }}>
-        <div className="tier-card tier-featured" style={{ maxWidth: 480 }}>
-          <div className="tier-ribbon">Full Access</div>
-          <div className="tier-name">Premium</div>
-          <div className="tier-price">
-            <span className="tier-price-num">Admin Approval</span>
-          </div>
-          <p className="tier-tagline">Sign up and get approved for full access to all features</p>
-
-          {user ? (
-            user.approved || user.is_owner ? (
-              <Link to="/app" className="btn btn-primary btn-wide">Go to App</Link>
-            ) : (
-              <div style={{
-                padding: '12px 20px', borderRadius: 8,
-                background: 'rgba(212,160,36,0.15)', color: 'var(--amber)',
-                textAlign: 'center', fontWeight: 600,
-              }}>
-                Pending Admin Approval
+      <section className="pricing-tiers">
+        {TIERS.map(t => {
+          const cta = getCtaInfo(t);
+          return (
+            <div key={t.id} className={`tier-card ${t.featured ? 'tier-featured' : ''} ${isCurrentPlan(t.id) ? 'tier-current' : ''}`}>
+              {t.featured && <div className="tier-ribbon">Most Popular</div>}
+              {isCurrentPlan(t.id) && <div className="tier-ribbon tier-ribbon-current">Current Plan</div>}
+              <div className="tier-name">{t.name}</div>
+              <div className="tier-price">
+                <span className="tier-price-num">{t.price}</span>
+                <span className="tier-price-period">{t.period}</span>
               </div>
-            )
-          ) : (
-            <Link to="/signup" className="btn btn-primary btn-wide">Sign Up for Access</Link>
-          )}
+              <p className="tier-tagline">{t.tagline}</p>
 
-          <ul className="tier-features">
-            {FEATURES.map(f => <li key={f}>&#10003; {f}</li>)}
-          </ul>
-        </div>
+              {cta.disabled ? (
+                <div style={{
+                  padding: '12px 20px', borderRadius: 8,
+                  background: cta.label === 'Pending Admin Approval'
+                    ? 'rgba(212,160,36,0.15)' : 'rgba(100,100,100,0.15)',
+                  color: cta.label === 'Pending Admin Approval'
+                    ? 'var(--amber)' : 'var(--muted)',
+                  textAlign: 'center', fontWeight: 600,
+                  width: '100%', boxSizing: 'border-box',
+                }}>
+                  {cta.label}
+                </div>
+              ) : (
+                <Link to={cta.link} className={`btn ${t.featured ? 'btn-primary' : 'btn-ghost'} btn-wide`}>
+                  {cta.label}
+                </Link>
+              )}
+
+              <ul className="tier-features">
+                {t.features.map(f => <li key={f}>&#10003; {f}</li>)}
+                {t.limitations.map(f => <li key={f} className="tier-limit">- {f}</li>)}
+              </ul>
+            </div>
+          );
+        })}
       </section>
 
       <section className="pricing-faq">
