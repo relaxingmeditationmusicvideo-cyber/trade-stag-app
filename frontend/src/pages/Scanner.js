@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { formatPrice, formatPct, gradeBg } from '../App';
+import TradingViewChart from '../components/TradingViewChart';
 
 // ─── Scanner config: each scanner = filter + default sort + label ───
 // Names are SEBI-neutral, inspired by StockMagnets naming conventions.
@@ -120,14 +121,26 @@ function ScoreCell({ score, top, color }) {
 }
 
 // ─── Stock row ───
-function StockRow({ row, idx, onClick }) {
+function StockRow({ row, idx, onClick, onChart, chartOpen }) {
   const gradeColor = gradeBg(row.grade);
   const sparkColor = (row.chg_5d || 0) >= 0 ? '#10b981' : '#ef4444';
   const ts = row.trade_setup || {};
 
   return (
     <tr onClick={onClick} className="stock-row">
-      <td className="muted">{idx + 1}</td>
+      <td className="muted" style={{ position: 'relative' }}>
+        <span>{idx + 1}</span>
+        <button
+          title={chartOpen ? 'Hide chart' : 'Show chart'}
+          onClick={e => { e.stopPropagation(); onChart(row.symbol); }}
+          style={{
+            marginLeft: 6, background: chartOpen ? 'rgba(6,182,212,0.2)' : 'rgba(255,255,255,0.06)',
+            border: chartOpen ? '1px solid rgba(6,182,212,0.5)' : '1px solid rgba(255,255,255,0.1)',
+            color: chartOpen ? '#06b6d4' : '#8892a4', borderRadius: 4, cursor: 'pointer',
+            fontSize: 13, padding: '2px 6px', lineHeight: 1, transition: 'all 0.15s',
+          }}
+        >📈</button>
+      </td>
       <td><strong>{row.symbol}</strong></td>
       <td><span className="grade-badge" style={{ background: gradeColor }}>{row.grade}</span></td>
       <td><ScoreCell score={row.score} top={row.score_top} color={gradeColor} /></td>
@@ -188,6 +201,7 @@ export default function Scanner({ data, loading }) {
   const [scoreMin, setScoreMin] = useState(0);
   const [sortField, setSortField] = useState(cfg.sort);
   const [sortDir, setSortDir] = useState(cfg.dir);
+  const [chartSymbol, setChartSymbol] = useState(null);
 
   // Reset filters when switching scanner
   useEffect(() => {
@@ -309,6 +323,7 @@ export default function Scanner({ data, loading }) {
           )}
           {filtered.slice(0, 20).map((row, idx) => {
             const tag = row.avwap_tag || '';
+            const isChartOpen = chartSymbol === row.symbol;
             return (
               <div
                 key={row.symbol}
@@ -363,14 +378,29 @@ export default function Scanner({ data, loading }) {
                   </div>
                 </div>
                 {/* Smart Money & Signals */}
-                <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
                   {row.avwap_smart_money && <span className="signal-tag bullish">Smart Money Active</span>}
                   {row.avwap_vol_contraction && <span className="signal-tag">Vol Contraction</span>}
                   {(row.active_signals || []).slice(0, 4).map((sig, i) => {
                     const cleanSig = sig.replace(/[🔥🟢✅📈📋🚨💀🌟🕯📶🎯⚡⚠️]/g, '').replace('CONVICTION', 'High Score').replace('TRADE', 'Score Match').replace(/\bBUY\b/gi, 'Bullish Pattern').replace(/\bSell\b/gi, 'Bearish Pattern').trim();
                     return <span key={i} className="signal-tag">{cleanSig}</span>;
                   })}
+                  <button
+                    onClick={e => { e.stopPropagation(); setChartSymbol(isChartOpen ? null : row.symbol); }}
+                    style={{
+                      marginLeft: 'auto', background: isChartOpen ? 'rgba(6,182,212,0.2)' : 'rgba(255,255,255,0.06)',
+                      border: isChartOpen ? '1px solid rgba(6,182,212,0.5)' : '1px solid rgba(255,255,255,0.1)',
+                      color: isChartOpen ? '#06b6d4' : '#8892a4', borderRadius: 6, cursor: 'pointer',
+                      fontSize: 12, padding: '4px 12px', transition: 'all 0.15s',
+                    }}
+                  >{isChartOpen ? 'Hide Chart ✕' : '📈 View Chart'}</button>
                 </div>
+                {/* Expandable TradingView Chart */}
+                {isChartOpen && (
+                  <div style={{ marginTop: 12 }} onClick={e => e.stopPropagation()}>
+                    <TradingViewChart symbol={row.symbol} height={480} compact={false} />
+                  </div>
+                )}
               </div>
             );
           })}
@@ -390,7 +420,32 @@ export default function Scanner({ data, loading }) {
           </thead>
           <tbody>
             {filtered.slice(0, 200).map((row, i) => (
-              <StockRow key={row.symbol + i} row={row} idx={i} onClick={() => navigate(`/app/stock/${row.symbol}`)} />
+              <React.Fragment key={row.symbol + i}>
+                <StockRow
+                  row={row} idx={i}
+                  onClick={() => navigate(`/app/stock/${row.symbol}`)}
+                  onChart={sym => setChartSymbol(chartSymbol === sym ? null : sym)}
+                  chartOpen={chartSymbol === row.symbol}
+                />
+                {chartSymbol === row.symbol && (
+                  <tr>
+                    <td colSpan={22} style={{ padding: 0, background: '#0a0c10' }}>
+                      <div style={{ padding: '8px 12px 12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: '#06b6d4' }}>
+                            {row.symbol} — Daily Chart
+                          </span>
+                          <button
+                            onClick={() => setChartSymbol(null)}
+                            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#8892a4', borderRadius: 4, cursor: 'pointer', fontSize: 11, padding: '2px 8px' }}
+                          >Close ✕</button>
+                        </div>
+                        <TradingViewChart symbol={row.symbol} height={480} compact={false} />
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
             ))}
           </tbody>
         </table>

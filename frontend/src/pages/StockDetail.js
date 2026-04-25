@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { formatNum, formatPct, gradeClass, getScoreColor } from '../App';
+import TradingViewChart from '../components/TradingViewChart';
 
 const EXPERT_LABELS = {
   a1_nifty_above_dma: 'Nifty above 20 & 50 DMA',
@@ -92,6 +93,11 @@ function StockDetail({ api }) {
             {formatPct(stock.chg_1d)} today
           </div>
         </div>
+      </div>
+
+      {/* TradingView Chart */}
+      <div style={{ marginBottom: 16 }}>
+        <TradingViewChart symbol={stock.symbol} height={520} compact={false} />
       </div>
 
       {/* Tabs */}
