@@ -1870,6 +1870,15 @@ class NSEAnalysisPipeline:
                 "ema_200"        : round(last.get("EMA_200", 0), 2),
                 "above_200ema"   : bool(last["Close"] > last.get("EMA_200", 0)),
 
+                # Chartink scanner fields
+                "prev_close": round(float(daily["Close"].iloc[-2]), 2) if len(daily) >= 2 else 0,
+                "prev_high": round(float(daily["High"].iloc[-2]), 2) if len(daily) >= 2 else 0,
+                "sma_20": round(float(daily["Close"].tail(20).mean()), 2) if len(daily) >= 20 else 0,
+                "sma_50": round(float(daily["Close"].tail(50).mean()), 2) if len(daily) >= 50 else 0,
+                "vol_sma_10": round(float(daily["Volume"].tail(10).mean()), 0) if len(daily) >= 10 else 0,
+                "vol_sma_20": round(float(daily["Volume"].tail(20).mean()), 0) if len(daily) >= 20 else 0,
+                "rsi_prev": round(float(daily["RSI"].iloc[-2]), 1) if len(daily) >= 2 and "RSI" in daily.columns else 0,
+
                 # ── EMA Momentum Scanner fields (v7.2) ──
                 # Rule 1: Early Momentum 5>13>26
                 "ema_early_momentum": bool(
@@ -7981,6 +7990,15 @@ class NSEAnalysisPipeline:
                 "ema_50"         : round(last.get("EMA_50",  0), 2),
                 "ema_200"        : round(last.get("EMA_200", 0), 2),
                 "above_200ema"   : bool(last["Close"] > last.get("EMA_200", 0)),
+
+                # Chartink scanner fields
+                "prev_close": round(float(daily["Close"].iloc[-2]), 2) if len(daily) >= 2 else 0,
+                "prev_high": round(float(daily["High"].iloc[-2]), 2) if len(daily) >= 2 else 0,
+                "sma_20": round(float(daily["Close"].tail(20).mean()), 2) if len(daily) >= 20 else 0,
+                "sma_50": round(float(daily["Close"].tail(50).mean()), 2) if len(daily) >= 50 else 0,
+                "vol_sma_10": round(float(daily["Volume"].tail(10).mean()), 0) if len(daily) >= 10 else 0,
+                "vol_sma_20": round(float(daily["Volume"].tail(20).mean()), 0) if len(daily) >= 20 else 0,
+                "rsi_prev": round(float(daily["RSI"].iloc[-2]), 1) if len(daily) >= 2 and "RSI" in daily.columns else 0,
 
                 # ── EMA Momentum Scanner fields (v7.2) ──
                 # Rule 1: Early Momentum 5>13>26

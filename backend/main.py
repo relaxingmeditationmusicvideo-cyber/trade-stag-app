@@ -561,6 +561,101 @@ def _normalize_stock(raw):
             and normalized["avwap_above"]
         )
 
+        # Chartink Scanner Flags
+        _price = normalized.get("price", 0)
+        _open = normalized.get("open", 0)
+        _high = normalized.get("high", 0)
+        _low = normalized.get("low", 0)
+        _volume = normalized.get("volume", 0)
+        _prev_close = _f(raw.get("prev_close"))
+        _prev_high = _f(raw.get("prev_high"))
+        _sma_20 = _f(raw.get("sma_20"))
+        _sma_50 = _f(raw.get("sma_50"))
+        _vol_sma_10 = _f(raw.get("vol_sma_10"))
+        _vol_sma_20 = _f(raw.get("vol_sma_20"))
+        _rsi = normalized.get("rsi", 0)
+        _rsi_prev = _f(raw.get("rsi_prev"))
+        _ema_200 = normalized.get("ema_200", 0)
+
+        # Store extra fields for frontend display
+        normalized["prev_close"] = _prev_close
+        normalized["prev_high"] = _prev_high
+        normalized["sma_20"] = _sma_20
+        normalized["vol_sma_10"] = _vol_sma_10
+
+        # 1. 2x Volume Bullish: volume > vol_sma_10 * 2 AND low > prev_close
+        normalized["flag_vol_2x_bull"] = bool(
+            _vol_sma_10 > 0 and _volume > _vol_sma_10 * 2
+            and _prev_close > 0 and _low > _prev_close
+        )
+
+        # 2. 3x Volume Breakout: volume > vol_sma_10 * 3 AND close > prev_high
+        normalized["flag_vol_3x_breakout"] = bool(
+            _vol_sma_10 > 0 and _volume > _vol_sma_10 * 3
+            and _prev_high > 0 and _price > _prev_high
+        )
+
+        # 3. Bullish Breakout with Volume: close > prev_high AND volume > vol_sma_20 * 1.5
+        normalized["flag_bull_breakout_vol"] = bool(
+            _prev_high > 0 and _price > _prev_high
+            and _vol_sma_20 > 0 and _volume > _vol_sma_20 * 1.5
+        )
+
+        # 4. RSI 50 Cross with Volume: RSI crossed above 50 (rsi > 50 and rsi_prev <= 50) AND volume > vol_sma_20 * 1.5
+        normalized["flag_rsi50_cross"] = bool(
+            _rsi > 50 and _rsi_prev is not None and _rsi_prev > 0 and _rsi_prev <= 50
+            and _vol_sma_20 > 0 and _volume > _vol_sma_20 * 1.5
+        )
+
+        # 5. 200 EMA Bullish Crossover: close crossed above ema_200 AND volume > vol_sma_20
+        normalized["flag_ema200_cross"] = bool(
+            _ema_200 > 0 and _price > _ema_200
+            and _prev_close > 0 and _prev_close <= _ema_200
+            and _vol_sma_20 > 0 and _volume > _vol_sma_20
+        )
+
+        # 6. 20 SMA Breakout: close crossed above sma_20 AND volume > vol_sma_10 * 1.5
+        normalized["flag_sma20_breakout"] = bool(
+            _sma_20 > 0 and _price > _sma_20
+            and _prev_close > 0 and _prev_close <= _sma_20
+            and _vol_sma_10 > 0 and _volume > _vol_sma_10 * 1.5
+        )
+
+        # 7. BTST Bullish: close > open AND close > prev_high AND volume > vol_sma_10 * 2
+        normalized["flag_btst_bull"] = bool(
+            _price > _open and _open > 0
+            and _prev_high > 0 and _price > _prev_high
+            and _vol_sma_10 > 0 and _volume > _vol_sma_10 * 2
+        )
+
+        # 8. Strong Intraday Momentum: close > open AND close > vwap (use typical price proxy) AND volume > vol_sma_20 * 2
+        _typ_price = (_high + _low + _price) / 3 if _price > 0 else 0
+        normalized["flag_strong_momentum"] = bool(
+            _price > _open and _open > 0
+            and _price > _typ_price
+            and _vol_sma_20 > 0 and _volume > _vol_sma_20 * 2
+        )
+
+        # 9. Gap Up with Volume: open > prev_high AND volume > vol_sma_10 * 1.5
+        normalized["flag_gap_up_vol"] = bool(
+            _prev_high > 0 and _open > _prev_high
+            and _vol_sma_10 > 0 and _volume > _vol_sma_10 * 1.5
+        )
+
+        # 10. Delivery Style Strong: close > open AND close > sma_20 AND volume > vol_sma_20 * 2
+        normalized["flag_delivery_strong"] = bool(
+            _price > _open and _open > 0
+            and _sma_20 > 0 and _price > _sma_20
+            and _vol_sma_20 > 0 and _volume > _vol_sma_20 * 2
+        )
+
+        # 11. Beginner Scanner: close > prev_high AND volume > vol_sma_10 * 2 AND rsi > 55
+        normalized["flag_beginner_pick"] = bool(
+            _prev_high > 0 and _price > _prev_high
+            and _vol_sma_10 > 0 and _volume > _vol_sma_10 * 2
+            and _rsi > 55
+        )
+
         return normalized
     except Exception as exc:
         logger.warning(f"Normalize failed: {exc}")
@@ -1021,6 +1116,17 @@ def get_all_stocks():
             "dryup_pattern": sum(1 for r in results if r.get("flag_dryup_pattern")),
             "near_52w_high": sum(1 for r in results if r.get("flag_52w_breakout_zone")),
             "avwap_breakout": sum(1 for r in results if r.get("flag_avwap_breakout")),
+            "vol_2x_bull": sum(1 for r in results if r.get("flag_vol_2x_bull")),
+            "vol_3x_breakout": sum(1 for r in results if r.get("flag_vol_3x_breakout")),
+            "bull_breakout_vol": sum(1 for r in results if r.get("flag_bull_breakout_vol")),
+            "rsi50_cross": sum(1 for r in results if r.get("flag_rsi50_cross")),
+            "ema200_cross": sum(1 for r in results if r.get("flag_ema200_cross")),
+            "sma20_breakout": sum(1 for r in results if r.get("flag_sma20_breakout")),
+            "btst_bull": sum(1 for r in results if r.get("flag_btst_bull")),
+            "strong_momentum": sum(1 for r in results if r.get("flag_strong_momentum")),
+            "gap_up_vol": sum(1 for r in results if r.get("flag_gap_up_vol")),
+            "delivery_strong": sum(1 for r in results if r.get("flag_delivery_strong")),
+            "beginner_pick": sum(1 for r in results if r.get("flag_beginner_pick")),
             "sectors": len(_store.get("sectors") or []),
         }
 

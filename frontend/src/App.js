@@ -34,6 +34,22 @@ const SIDEBAR_GROUPS = [
     ],
   },
   {
+    label: 'Chartink Scanners',
+    items: [
+      { id: 'vol_2x_bull',      label: '2x Volume Bullish',    icon: '📊', badge: 'NEW' },
+      { id: 'vol_3x_breakout',  label: '3x Volume Breakout',   icon: '💥', badge: 'NEW' },
+      { id: 'bull_breakout_vol', label: 'Bullish Breakout+Vol', icon: '🚀', badge: 'NEW' },
+      { id: 'rsi50_cross',      label: 'RSI 50 Crossover',     icon: '📈', badge: 'NEW' },
+      { id: 'ema200_cross',     label: '200 EMA Breakout',     icon: '🌟', badge: 'NEW' },
+      { id: 'sma20_breakout',   label: '20 SMA Breakout',      icon: '📐', badge: 'NEW' },
+      { id: 'btst_bull',        label: 'BTST Bullish',         icon: '🌙', badge: 'NEW' },
+      { id: 'strong_momentum',  label: 'Strong Momentum',      icon: '⚡', badge: 'NEW' },
+      { id: 'gap_up_vol',       label: 'Gap Up + Volume',      icon: '🔼', badge: 'NEW' },
+      { id: 'delivery_strong',  label: 'Delivery Strong',      icon: '📦', badge: 'NEW' },
+      { id: 'beginner_pick',    label: 'Beginner Pick',        icon: '🎓', badge: 'HOT' },
+    ],
+  },
+  {
     label: 'Momentum & Technical',
     items: [
       { id: 'all',          label: 'All Stocks',           icon: '📊' },

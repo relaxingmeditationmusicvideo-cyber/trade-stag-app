@@ -29,6 +29,18 @@ const SCANNERS = {
   dryup_pattern: { name: 'Dry-Up + Pattern',    icon: '🧊', filter: r => r.flag_dryup_pattern,                  sort: 'score', dir: 'desc' },
   near_52w_high: { name: '52W High Zone',       icon: '🏔️', filter: r => r.flag_52w_breakout_zone,              sort: 'pct_from_high', dir: 'desc' },
   avwap_breakout:{ name: 'AVWAP Pre-Breakout', icon: '🔥', filter: r => r.flag_avwap_breakout,                 sort: 'avwap_score', dir: 'desc' },
+  // Chartink-style scanners
+  vol_2x_bull:     { name: '2x Volume Bullish',    icon: '📊', filter: r => r.flag_vol_2x_bull,       sort: 'vol_ratio', dir: 'desc' },
+  vol_3x_breakout: { name: '3x Volume Breakout',   icon: '💥', filter: r => r.flag_vol_3x_breakout,   sort: 'vol_ratio', dir: 'desc' },
+  bull_breakout_vol:{ name: 'Bullish Breakout+Vol', icon: '🚀', filter: r => r.flag_bull_breakout_vol, sort: 'vol_ratio', dir: 'desc' },
+  rsi50_cross:     { name: 'RSI 50 Crossover',     icon: '📈', filter: r => r.flag_rsi50_cross,       sort: 'rsi', dir: 'desc' },
+  ema200_cross:    { name: '200 EMA Breakout',      icon: '🌟', filter: r => r.flag_ema200_cross,      sort: 'score', dir: 'desc' },
+  sma20_breakout:  { name: '20 SMA Breakout',       icon: '📐', filter: r => r.flag_sma20_breakout,    sort: 'score', dir: 'desc' },
+  btst_bull:       { name: 'BTST Bullish',          icon: '🌙', filter: r => r.flag_btst_bull,         sort: 'vol_ratio', dir: 'desc' },
+  strong_momentum: { name: 'Strong Momentum',       icon: '⚡', filter: r => r.flag_strong_momentum,   sort: 'vol_ratio', dir: 'desc' },
+  gap_up_vol:      { name: 'Gap Up + Volume',       icon: '🔼', filter: r => r.flag_gap_up_vol,        sort: 'vol_ratio', dir: 'desc' },
+  delivery_strong: { name: 'Delivery Strong',       icon: '📦', filter: r => r.flag_delivery_strong,   sort: 'delivery_pct', dir: 'desc' },
+  beginner_pick:   { name: 'Beginner Pick',         icon: '🎓', filter: r => r.flag_beginner_pick,     sort: 'score', dir: 'desc' },
 };
 
 // ─── Filter chips definition ───
