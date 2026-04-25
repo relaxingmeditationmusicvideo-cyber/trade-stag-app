@@ -18,6 +18,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import DisclaimerModal from './components/DisclaimerModal';
 import { AuthProvider, useAuth, canAccessScanner, isTrialExpired, FREE_SCANNERS } from './AuthContext';
 import Logo from './components/Logo';
+import SiteGate from './components/SiteGate';
 import { ScannerGate, FeatureGate, TrialBanner, PlanBadge } from './components/PlanGate';
 
 // Empty string = relative URL → browser uses current domain automatically.
@@ -341,6 +342,7 @@ function AppShell() {
 
 function App() {
   return (
+    <SiteGate>
     <AuthProvider>
       <BrowserRouter>
         <Routes>
@@ -364,6 +366,7 @@ function App() {
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+    </SiteGate>
   );
 }
 
